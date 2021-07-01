@@ -37,6 +37,44 @@
           implementation by Julius Frost. In our project we need a pyTorch implementation to run with RLBench. We use the Julius Frost implementation for that, while in the mean time
           targeting an RLLib contribution.</p>
         
+        <h2>Back-Propagation through Random Operations</h2>
+        <p>Dreamer defiunitely has a generative compartment. It accumulates on partial observation information into a distributed representation, which is
+        then used to generate possible futures.</p>
+        <p>To understand this aspect of Dreamer, I paraphrase Bengio et al. Traditional neural networks implement a deterministic transformation of some input 
+          variables <b>x</b>. 
+          When developing Dreamer's generative component, we wish to extend neural networks to implement stochastic transformations of <b>x</b>. 
+          One straightforward way to do this is to augment the neural network with extra inputs <b>z</b> that are sampled from Gaussian distributions. 
+          The neural network can then continue to perform deterministic computation internally, but the function f(x, z) 
+          will appear stochastic to anobserver who does not have access toz. Provided that f is continuous anddifferentiable, we can then compute the gradients 
+          necessary for training usingback-propagation as usual. </p>
+        <p>As an example, let us consider the operation consisting of <i>drawing samples</i> y from a Gaussian 
+          distribution with mean µ and variance σ2:y ∼ N(µ, σ2). (20.54) <!--Because an individual sample ofyis produced not by a function, but rather bya sampling 
+          process whose output changes every time we query it, it may seemcounterintuitive to take the derivatives ofywith respect to the parameters ofits 
+          distribution,µandσ2. However, we can rewrite the sampling process astransforming an underlying random valuez ∼ N(z; 0,1) to obtain a sample fromthe 
+          desired distribution:y = µ + σz. (20.55)We are now able to back-propagate through the sampling operation, by regard-ing it as a deterministic operation 
+          with an extra inputz. Crucially, the extra inputis a random variable whose distribution is not a function of any of the variableswhose derivatives we 
+          want to calculate. The result tells us how an inﬁnitesimalchange inµorσwould change the output if we could repeat the sampling operationagain with the 
+          same value of z.Being able to back-propagate through this sampling operation allows us toincorporate it into a larger graph. We can build elements of 
+          the graph on top of the output of the sampling distribution. For example, we can compute the derivativesof some loss functionJ(y). We can also build 
+          elements of the graph whose outputsare the inputs or the parameters of the sampling operation. For example, we couldbuild a larger graph withµ=f(x;θ) 
+          andσ=g(x;θ). In this augmented graph,we can use back-propagation through these functions to derive ∇θJ(y).The principle used in this Gaussian sampling 
+          example is more generally appli-cable. We can express any probability distribution of the formp(y;θ) orp(y | x;θ)asp(y | ω), whereωis a variable 
+          containing both parametersθ, and if applicable,the inputsx. Given a valueysampled from distributionp(y | ω), whereωmay inturn be a function of other 
+          variables, we can rewritey ∼ p(y | ω) (20.56)asy = f(z; ω), (20.57)wherezis a source of randomness. We may then compute the derivatives ofywithrespect 
+          toωusing traditional tools such as the back-propagation algorithm appliedtof, as long asfis continuous and diﬀerentiable almost everywhere. Crucially, 
+          ω must not be a function ofz, andzmust not be a function ofω. This techniqueis often called thereparametrization trick,stochastic back-propagation, or
+          perturbation analysis.The requirement thatfbe continuous and diﬀerentiable of course requiresyto be continuous. If we wish to back-propagate through a 
+          sampling process thatproduces discrete-valued samples, it may still be possible to estimate a gradient onω, using reinforcement learning algorithms such 
+          as variants of the REINFORCEalgorithm (Williams, 1992), discussed in section 20.9.1.In neural network applications, we typically choosezto be drawn from 
+          somesimple distribution, such as a unit uniform or unit Gaussian distribution, andachieve more complex distributions by allowing the deterministic portion 
+          of thenetwork to reshape its input.The idea of propagating gradients or optimizing through stochastic operationsdates back to the mid-twentieth century 
+          (Price, 1958; Bonnet, 1964) and wasﬁrst used for machine learning in the context of reinforcement learning (Williams,1992). More recently, it has been 
+          applied to variational approximations (Opperand Archambeau, 2009) and stochastic and generative neural networks (Bengioet al., 2013b; Kingma, 2013; 
+          Kingma and Welling, 2014b,a; Rezende et al., 2014;Goodfellow et al., 2014c). Many networks, such as denoising autoencoders ornetworks regularized with 
+          dropout, are also naturally designed to take noise as an input without requiring any special reparametrization to make the noiseindependent from the model.
+         <-->
+         </p>
+        
          <h2>RLLib</h2>
         <pre><code>
 # RLLib uses trainers
