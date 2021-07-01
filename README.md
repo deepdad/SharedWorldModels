@@ -3,13 +3,25 @@
 Dream to Control: Learning Behaviors by Latent Imagination  
 Mastering Atari with Discrete World Models
 
+We are developing an RLBench targeting version of DreamerV1. 
+This was based on the assumption that DreamerV2 would not be suitable
+ for continuous action spaces but when that turned out to be a mistake,
+ the decision was rebased to being more useful for comparisons.
+
+To start, run the Danijar Dreamer v1. It is based on tensorflow and MUJOCO.
+It has 2KLOC
+
+
 ## Installation
+Note: RLBench has a strict openGL>3 driver dependency.
+Note: MUJOCO requires a computer-tied and .edu email-tied license.
 
 ### Install packages
 pip cache purge
 pip config set global.cache-dir false
 torch
 torchvision
+PyBullet
 gym
 atari_py
 opencv-python
@@ -18,7 +30,7 @@ psutil
 tqdm
 tensorboard
 pytest
-
+lz4
 
 ### MUCOJO
 The instructions below for MUJOCO, patchelf and mesa can be read from the trace of trying:
@@ -91,7 +103,18 @@ git clone https://github.com/stepjam/PyRep.git
 
 #### Install
 
-PyRep requires version **4.1** of CoppeliaSim. Download: 
+PyRep requires version **4.1** of CoppeliaSim. This requires an OpenGL >3:
+```bash
+glxinfo | grep "OpenGL version"
+```
+If this is unavailble, you might revert to an older version of PyRep, relying on
+[V-Rep 3.6](https://www.coppeliarobotics.com/files/V-REP_PRO_EDU_V3_6_2_Ubuntu18_04)
+
+However, the more recent CopeliaSim may better support PyRep planning,
+ which may be relevant to DreamerV1/V2. On the other hand, it means
+ developing Dreamer with specific platform dependencies.
+
+Download: 
 - [Ubuntu 16.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu16_04.tar.xz)
 - [Ubuntu 18.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04.tar.xz)
 - [Ubuntu 20.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz)
@@ -143,21 +166,6 @@ pip install .
 ```
 I delete the .git folders in these three repo folders.  
 
-
-We installed GL3 for MUJOCO. Running 
-```bash
-python test_rl_bench.py
-```
-
-may result in an error:
-
-"0:1(10): error: GLSL 3.30 is not supported. Supported versions are: 1.10, 1.20, and 1.00 ES\n"  
-and in the GUI:  
-[simExtOpenGL3Renderer:error] this renderer requires atleast OpenGL 3.2. The version available is 2.1 Mesa 20.2.6
-```bash
-glxinfo | grep "OpenGL version"
-OpenGL version string: 2.1 Mesa 20.2.6
-```
 
 
 

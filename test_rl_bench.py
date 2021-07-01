@@ -4,7 +4,7 @@ from rlbench.tasks import ReachTarget
 import numpy as np
 
 action_mode = ActionMode(ArmActionMode.ABS_JOINT_VELOCITY)
-env = Environment(action_mode)
+env = Environment(action_mode, headless=True)
 env.launch()
 
 task = env.get_task(ReachTarget)
