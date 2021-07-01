@@ -32,14 +32,71 @@
         <p>The goal of this documentation is to link the paper <a href="https://arxiv.org/pdf/1912.01603.pdf" title="dreamer-v1">Dream to Control: Learning Behaviors by Latent Imagination</a> to<br>
           code snippets</p>
         
-        <p>Seevral implementations exist. From the <a href="https://github.com/danijar/dreamer" title="authors">authors</a> and Google Research, another one is available in Ray's RLLib, but it is 
+        <p>Several implementations exist. From the <a href="https://github.com/danijar/dreamer" title="authors">authors</a> and Google Research, another one is available in Ray's RLLib, but it is 
           currently not working. The RLLib implementation replaces the "framework code" (used to manage and run models) with ray specific instructions, but the main model code is based on an 
           implementation by Julius Frost. In our project we need a pyTorch implementation to run with RLBench. We use the Julius Frost implementation for that, while in the mean time
-          targeting an RLLib contribution.</p>
+          targeting an RLLib contribution, we don't start with the abstraction of the framework code.</p>
+        
+        <blockquote><p>We implement the transition model as a recurrent state space model (RSSM; Hafner et al., 2018),</p> </blockquote>
+        <blockquote><p>the representation model by combining the RSSM with a convolutional neural network (CNN; LeCun et al., 1989) applied to the image observation,</blockquote> 
+        <blockquote><p>the observation model as a transposed CNN, and the reward model as a dense network. </p></blockquote>
+        <blockquote><p>The combined parameter vector θ is updated by stochastic backpropagation.</p></blockquote>
+
+        
+        <h2>3 LEARNING BEHAVIORS BY LATENT IMAGINATION</h2>
+        <p>Dreamer learns long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging 
+          the neural network latent dynamics. For this, we propagate stochastic gradients of multi-step returns through neural 
+          network predictions of actions, states, rewards, and values using reparameterization. This section describes the main 
+          contribution of our paper.</p>
+        
+
+        <b>Imagination environment</b> <p> The latent dynamics define a Markov decision process (MDP; Sutton, 1991) that is fully 
+        observed because the compact model states st are Markovian. We denote imagined quantities with τ as the time index. 
+        Imagined trajectories start at the true model states st of observation sequences drawn from the agent’s past experience. 
+        They follow predictions of the transition model sτ ∼ q(sτ | sτ−1,aτ−1), reward model rτ ∼ q(rτ | sτ), and a policy aτ ∼ q(aτ | sτ). 
+        The objective is to maximize expected imagined rewards Eq􏰀􏰍∞τ=t γτ−trτ􏰁 with respect to the policy.</p>
+        
+        <a>https://github.com/deepdad/SharedWorldModels/blob/a52019ff5b43c373946be07652dccd682c9e21ce/dreamer-pytorch/dreamer/models/action.py#L40</a>
+        <pre><code>
+            def forward(self, state_features):
+        x = self.feedforward_model(state_features)
+        dist = None
+        if self.dist == 'tanh_normal':
+            mean, std = torch.chunk(x, 2, -1)
+            mean = self.mean_scale * torch.tanh(mean / self.mean_scale)
+            std = F.softplus(std + self.raw_init_std) + self.min_std
+            dist = torch.distributions.Normal(mean, std)
+            print("dreamer/models/action.py: ", dist)
+            dist = torch.distributions.TransformedDistribution(dist,
+                TanhBijector())
+            dist = torch.distributions.Independent(dist, 1)
+            dist = SampleDist(dist)
+        elif self.dist == 'one_hot':
+            dist = torch.distributions.OneHotCategorical(logits=x)
+        elif self.dist == 'relaxed_one_hot':
+            dist = torch.distributions.RelaxedOneHotCategorical(0.1, logits=x)
+        return dist
+        </pre></code>
         
         <h2>Back-Propagation through Random Operations</h2>
-        <p>Dreamer defiunitely has a generative compartment. It accumulates on partial observation information into a distributed representation, which is
-        then used to generate possible futures.</p>
+        <blockquote><p> Action and value models Consider imagined trajectories with a finite horizon H. Dreamer uses an actor critic approach to learn 
+          behaviors that consider rewards beyond the horizon. We learn an action model and a value model in the latent space of the world model for this. 
+          The action model implements the policy and aims to predict actions that solve the imagination environment. The value model estimates the expected 
+          imagined rewards that the action model achieves from each state sτ ,
+                Actionmodel: aτ ∼ qφ(aτ |sτ)
+                Value model: vψ(sτ) ≈ Eq(·|s )􏰀􏰍t+H γτ−trτ􏰁. (2)
+          
+          The action and value models are trained cooperatively as typical in policy iteration: the action model aims to maximize an estimate of the value, 
+          while the value model aims to match an estimate of the value that changes as the action model changes.
+          We use dense neural networks for the action and value models with parameters φ and ψ, respectively. 
+          The action model outputs a tanh-transformed Gaussian (Haarnoja et al., 2018) with sufficient statistics predicted by the neural network. 
+          This allows for reparameterized sampling (Kingma and Welling, 2013; Rezende et al., 2014) that views sampled actions as deterministically dependent 
+          on the neural network output, allowing us to backpropagate analytic gradients through the sampling operation,
+           aτ = tanh􏰀μφ(sτ ) + σφ(sτ ) ε􏰁, ε ∼ Normal(0, I). (3)</p></blockquote>
+        
+        <!-- p>So, Dreamer definitely has a generative compartment. It accumulates on partial observation information into a distributed representation, which is
+        then used to generate possible futures.</p-->
+
         <p>To understand this aspect of Dreamer, I paraphrase Bengio et al. Traditional neural networks implement a deterministic transformation of some input 
           variables <b>x</b>. 
           When developing Dreamer's generative component, we wish to extend neural networks to implement stochastic transformations of <b>x</b>. 
