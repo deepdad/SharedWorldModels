@@ -37,7 +37,7 @@
           don't backpropagate through neural network dynamics, do you? You simply backpropagate gradients through a neural network. So what do they mean?</p> 
         <p>Well, as it turns out just explaining that phrase, explains a lot of the paper and the paper can be explained by explaining that phrase, touching
           on everything in the paper. Which is what I will try to do in this article.</p>
-        <p>And you might expect a IPython notebook here. But notebooks mainly run through
+        <p>And you might expect an IPython notebook here. But notebooks mainly run through
           source code, while here I try to run through the paper and clarify some things. Some of these things are references to external sources, 
           some things are probably basic for many readers but may not be active knowledge for others. In the explanation here, I also have a few pointers
           into the source code, which is fairly concise. It won't help us achieve our main mission, which is to change ‘dm_control‘ to ‘RLBench‘ so this
@@ -50,27 +50,42 @@
     </ul>
     <p>It is clear what is meant by dynamics: the state evolution of a system. The agent/environment system evolves according to actions working on 
       the environment, affecting the trajectory of the environmental state evolution and consequentially observations of that environment later in time.
+    </p>
+    <p>
       But, why call them latent dynamics? Are there overt dynamics?
-      Why talk about neural network dynamics? Once trained, the neural net is not dynamic.
-      I guess the answer is that the whole system is modelled when using representing "world models" instead of the "live" environment and to make a distinction
-      between world model dynamics and environmental state evolution, this word sorcery is used. In the representing world models, the agents own actions
-      are represented, its hypothetical world model (recursively) is represented and hypothetical observations as well. It's nat a very satisfying answer, I guess.
-      <p> 
-    <p>Then we have:</p>
+    </p>
+    <p>
+      Why talk about neural network dynamics? There is no model of these dynamics, other than the nn itself.
+    </p>
+    <p>
+      I answer this as that the whole system is modelled when using representing "world models" instead of the "live" environment. And to make a distinction
+      between world model dynamics and environmental state evolution, the users use "latent" for the former. 
+    </p>
+    <p>
+      In the representing world models, the agents own actions
+      are represented, its hypothetical world model (recursively) is represented and hypothetical observations as well. It's not a very satisfying answer.
+      Especially because latent is also used in different contexts than the world model.
+    </p> 
+    <p>Then we have:
     <ul>  
     <li><blockquote><p>latent imagination<p><blockquote></li>
     <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
-    
-     <li><blockquote><p>encode observations and actions into compact latent states<p><blockquote></li>
+    </ul>
+      These are synonymous.
+    </p>
+    <p>
+      Then about the learning:
+    <ul>
+    <li><blockquote><p>encode observations and actions into compact latent states<p><blockquote></li>
     <li><blockquote><p>(learns) long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging the neural network latent dynamics<p><blockquote></li>  
     <li><blockquote><p>propagate stochastic gradients of multi-step returns through neural network predictions of actions, states, rewards, and values 
           using reparameterization ... The latent dynamics define a Markov decision process (MDP; Sutton, 1991) that is fully observed because 
           the compact model states s<msub>t</msub> are Markovian. We denote imagined quantities with τ as the time index. Imagined trajectories start 
           at the true model states s<msub>t</msub> of observation sequences drawn from the agent’s past experience. 
           They follow predictions of the transition model s_τ ∼ q(s_τ | s_{τ−1},a_{τ−1}), reward model r_τ ∼ q(r_τ | s_τ), and a policy a_τ ∼ q(a_τ | s_τ). 
-          The objective is to maximize expected imagined rewards E_q􏰀􏰍∞τ=t γ_τ−tr_τ􏰁 with respect to the policy.<p><blockquote></li>
+          The objective is to maximize expected imagined rewards E_q∞τ=t γ_τ−tr_τ with respect to the policy.<p><blockquote></li>
       </ul>  
-      <p>The learning dynamics of a neural network are known but implicit. The dynamics of an agent in an environment are modelled. 
+      <p>The learning dynamics of a neural network are known but algebraic. The dynamics of an agent in an environment are modelled. 
       <pre><code>...<code><pre></p>
 
       <p>The aforementioned backprop is used in a model that "imagines" things.</p>
