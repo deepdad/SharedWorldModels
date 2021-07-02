@@ -32,42 +32,33 @@
         <p>The goal of this article is to clarify the papers <a href="https://arxiv.org/pdf/1912.01603.pdf" title="dreamer-v1">Dream to 
           Control: Learning Behaviors by Latent Imagination</a> and ... </p>
         
-        <p>The first paper is not the clearest. The authors repeatedly write <blockquote><p>backpropagate through the neural
+        <p>In the first paper, the authors repeatedly write <blockquote><p>backpropagate through the neural
           network dynamics</blockquote></p> or variants of that. I found that an unclear choice of words. Especially on first reading. Because you 
-          don't backpropagate through neural network dynamics, do you? You simply backropagate gradients through a neural network. So what does this mean? 
+          don't backpropagate through neural network dynamics, do you? You simply backpropagate gradients through a neural network. So what do they mean?</p> 
         <p>Well, as it turns out just explaining that phrase, explains a lot of the paper and the paper can be explained by explaining that phrase, touching
-          on everything in the paper. Which is what I will do in this article</p>
-          
-        <p>A number of things are synonymous: latent dynamics, neural network dynamics and world model. I think I might just try to use a single and more common 
-          term everywhere, but OK. With hindsight it may make sense.</p>
-      
-        <p>So, you have " latent dynamics models", "latent imagination", "hypothetical trajectories in the compact latent space of the world model",
-          "(back through) the neural network dynamics", "encode observations and actions into compact latent states", 
-          "(learns) long-horizon behaviors in the 
-          compact latent space of a learned world model by efficiently leveraging the neural network latent dynamics",
-           "propagate stochastic gradients of multi-step returns through neural network predictions of actions, states, rewards, and values 
+          on everything in the paper. Which is what I will try to do in this article</p>
+        <p>And you might expect a IPython notebook here. But notebooks mainly run through
+          source code, while here I try to run through the paper and clarify some things. Some of these things are references to external sources, 
+          some things are probably basic for many readers but may not be active knowledge for others. In the explanation here, I also have a few pointers
+          into the source code, which is fairly concise. It won't help us achieve our main mission, which is to change ‘dm_control‘ to ‘RLBench‘ so this
+          article doesn't have priority, but it will hopefully help getting started with the source code.
+        </p>  
+        <p>So, you have: <ul>
+    <li><blockquote><p>"latent dynamics models"<p><blockquote></li>
+    <li><blockquote><p>latent imagination<p><blockquote></li>
+    <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
+    <li><blockquote><p>(back through) the neural network dynamics<p><blockquote></li>
+    <li><blockquote><p>encode observations and actions into compact latent states<p><blockquote></li>
+    <li><blockquote><p>(learns) long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging the neural network latent dynamics<p><blockquote></li>  
+    <li><blockquote><p>propagate stochastic gradients of multi-step returns through neural network predictions of actions, states, rewards, and values 
           using reparameterization", "The latent dynamics define a Markov decision process (MDP; Sutton, 1991) that is fully observed because 
           the compact model states st are Markovian. We denote imagined quantities with τ as the time index. Imagined trajectories start 
           at the true model states st of observation sequences drawn from the agent’s past experience. 
           They follow predictions of the transition model s_τ ∼ q(s_τ | s_{τ−1},a_{τ−1}), reward model r_τ ∼ q(r_τ | s_τ), and a policy a_τ ∼ q(a_τ | s_τ). 
-          The objective is to maximize expected imagined rewards E_q􏰀􏰍∞τ=t γ_τ−tr_τ􏰁 with respect to the policy."
-          
-          Like the Spanish Appquarium (cunt!) douche bag from Mallorca put it: "you bore me."
-          
-          latent means implicit, in that it is a distributed representation in the hidden 
-           layers, although it is also latent in the dynamics because the dynamics are not explicitly represented:
-           "imagination" part uses sampling and needs stochastic backpropagation foAnd you might expect a IPython notebook here. But notebooks mainly run through
-          source code, while here I try to run through the paper and clarify some things. Some of these things are references to external sources, 
-          some things are probably basic for many readers but may not be active knowledge for others. In the explanation here, I also have a few pointers
-          into the source code, which is fairly concise. It won't help us achieve our main mission, which is to change ‘dm_control‘ to ‘RLBench‘ so this
-          article doesn't have priority.
-      </p>
-      aybe that is also the most difficult part of reading this paper. The aforementioned backprop is used in a model that "imagines" things.
-           This is separate from the "latent" and "dynamics". (Again, 
-    
-        <p></p>
-        
-        <p>Several implementations exist. From the <a href="https://github.com/danijar/dreamer" title="authors">authors</a> and Google Research, another one is available in Ray's RLLib, but it is 
+          The objective is to maximize expected imagined rewards E_q􏰀􏰍∞τ=t γ_τ−tr_τ􏰁 with respect to the policy.<p><blockquote></li>
+      </ul>  
+      <p>The aforementioned backprop is used in a model that "imagines" things.</p>
+      <p>Several implementations exist. From the <a href="https://github.com/danijar/dreamer" title="authors">authors</a> and Google Research, another one is available in Ray's RLLib, but it is 
           currently not working. The RLLib implementation replaces the "framework code" (used to manage and run models) with ray specific instructions, but the main model code is based on an 
           implementation by Julius Frost. In our project we need a pyTorch implementation to run with RLBench. We use the Julius Frost implementation for that, while in the mean time
           targeting an RLLib contribution, we don't start with the abstraction of the framework code.</p>
