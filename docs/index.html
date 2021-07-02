@@ -25,6 +25,7 @@
           <li><a href="https://github.com/deepdad/SharedWorldModels/tarball/master">Download <strong>TAR Ball</strong></a></li>
           <li><a href="http://github.com/deepdad/SharedWorldModels">Fork On <strong>GitHub</strong></a></li>
         </ul>
+        <p><a href="#column2">click me to jump to column 2</a></p>
       </header>
       <section>
         <h1>Dreamer V1</h1>
@@ -135,8 +136,10 @@ We use p for distributions that generate samples in the real environment and q f
 The model mimics a non-linear Kalman filter (Kalman, 1960), latent state space model, or HMM with real-valued states. However, it is conditioned on actions and predicts rewards, allowing the agent to imagine the outcomes of potential action sequences without executing them in the environment.
 </p>
         
-   
-        <h2>3 LEARNING BEHAVIORS BY LATENT IMAGINATION</h2>
+
+        <div id="column2">
+           <h2>3 LEARNING BEHAVIORS BY LATENT IMAGINATION</h2>
+        </div>
         <p>Dreamer learns long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging 
           the neural network latent dynamics. For this, we propagate stochastic gradients of multi-step returns through neural 
           network predictions of actions, states, rewards, and values using reparameterization. This section describes the main 
