@@ -11,6 +11,8 @@
     <meta name="viewport" content="width=device-width">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <![endif]-->
   </head>
   <body>
@@ -74,7 +76,16 @@
     <p>Observation model: q<msub>θ</msub>(o<msub>t</msub> | s<msub>t</msub>)
      </p>
     <p>Reward model: q<msub>θ</msub>(r<msub>t</msub> | s<msub>t</msub>)
-$$ r = h = \sqrt{\frac {1} {2}} = \sqrt{\frac {N} {N+1}} \sqrt{\frac {N+1} {2N}} $$
+
+script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$','$$'], ['\\[','\\]']]
+    }
+};
+
+</script>
      </p>
     <p>Transitionmodel: q<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>).  
     </p>
