@@ -58,12 +58,28 @@
       Why talk about neural network dynamics? There is no model of these dynamics, other than the nn itself.
     </p>
     <p>
+      You might guess that latent is a different word for neural network, but then you'd get "neural network dynamics models". 
+      You might guess models is a different word for neural network, but then you'd get ".. learns neural network dynamics.." in the third example.
+    </p>
+    <p>
       I answer this as that the whole system is modelled when using representing "world models" instead of the "live" environment. And to make a distinction
       between world model dynamics and environmental state evolution, the users use "latent" for the former. 
     </p>
     <p>
+    The world model consists of the following components, where the observation model is only used to provide a learning signal,
+     </p>
+    <p>Representationmodel: p<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>,ot) 
+     </p>
+    <p>Observation model: q<msub>θ</msub>(o<msub>t</msub> | s<msub>t</msub>)
+     </p>
+    <p>Reward model: q<msub>θ</msub>(r<msub>t</msub> | s<msub>t</msub>)
+     </p>
+    <p>Transitionmodel: q<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>).  
+    </p>
+    <p>
       In the representing world models, the agents own actions
-      are represented, its hypothetical world model (recursively) is represented and hypothetical observations as well. It's not a very satisfying answer.
+      are represented, its hypothetical world model (recursively) is represented and hypothetical observations and rewards as well. 
+      It's not a very satisfying answer.
       Especially because latent is also used in different contexts than the world model.
     </p> 
     <p>Then we have:
