@@ -2,8 +2,7 @@
 sidebar:
   title: "dreamer: Shared World Models"
   nav: sidebar-sample
-
-mathjax: true
+  mathjax: true
 
 # Defaults
 defaults:
@@ -24,6 +23,7 @@ defaults:
       type: pages
     values:
       layout: single
+      mathjax: true
       # author_profile: true
   # _docs
   - scope:
@@ -31,6 +31,7 @@ defaults:
       type: docs
     values:
       layout: single
+      mathjax: true
       read_time: false
       author_profile: false
       share: false
