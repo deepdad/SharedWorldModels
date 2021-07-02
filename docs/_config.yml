@@ -3,6 +3,8 @@ sidebar:
   title: "dreamer: Shared World Models"
   nav: sidebar-sample
 
+mathjax: true
+
 # Defaults
 defaults:
   # _posts
