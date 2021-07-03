@@ -25,10 +25,11 @@
           <li><a href="https://github.com/deepdad/SharedWorldModels/tarball/master">Download <strong>TAR Ball</strong></a></li>
           <li><a href="http://github.com/deepdad/SharedWorldModels">Fork On <strong>GitHub</strong></a></li>
         </ul>
+        <p><a href="#column2">Dynamics</a></p>
+        <p><a href="#latent_imagination">Latent Imagination</a></p>
         <p><a href="#column2">Reparameterization</a></p>
         <p><a href="#column2">RSSM</a></p>
-        <p><a href="#column2">Latent Dynamics Models</a></p>
-        <p><a href="#column2">Imagination Horizon</a></p>
+        <p><a href="#imagination_horizon">Imagination Horizon</a></p>
         <p><a href="#column2">Analytic Gradients</a></p>
       </header>
       <section>
@@ -40,46 +41,90 @@
           Control: Learning Behaviors by Latent Imagination</a> and ... </p>
         
         <p>In the first paper, the authors repeatedly write <blockquote><p>backpropagate through the neural
-          network dynamics</blockquote></p> or variants of that. I found that an unclear choice of words. Especially on first reading. Because you 
-          don't backpropagate through neural network dynamics, do you? You simply backpropagate gradients through a neural network. So what do they mean?</p> 
-        <p>Well, as it turns out, just explaining that phrase, explains a lot of the paper and the paper can be explained by explaining that phrase, touching
+          network dynamics</blockquote></p> or variants of that. I found that an unclear choice of words. 
+          Especially on first reading. Because you 
+          don't backpropagate through neural network dynamics, do you? You simply backpropagate gradients 
+          through a neural network. So what do they mean?</p> 
+        <p>Well, as it turns out, just explaining that phrase, explains a lot of the paper and the paper
+          can be explained by explaining that phrase, touching
           on everything in the paper. Which is what I will try to do in this article.</p>
         <p>And you might expect an IPython notebook here. But notebooks mainly run through
-          source code, while here I try to run through the paper and clarify some things. Some of these things are references to external sources, 
-          some things are probably basic for many readers but may not be active knowledge for others. In the explanation here, I also have a few pointers
-          into the source code, which is fairly concise. It won't help us achieve our main mission, which is to change ‘dm_control‘ to ‘RLBench‘ so this
+          source code, while here I try to run through the paper and clarify some things. 
+          Some of these things are references to external sources, 
+          some things are probably basic for many readers but may not be active knowledge for others. 
+          In the explanation here, I also have a few pointers
+          into the source code, which is fairly concise. It won't help us achieve our main mission, 
+          which is to change ‘dm_control‘ to ‘RLBench‘ so this
           article doesn't have priority, but it will hopefully help getting started with the source code.
         </p>  
-        <p>So, you have: <ul>
-    <li><blockquote><p>latent dynamics models<p><blockquote> </li>
-    <li><blockquote><p>(back through) the neural network dynamics<p><blockquote></li> 
-    <li><blockquote><p>PlaNet (Hafner et al., 2018) that learns latent dynamics by reconstructing images<p><blockquote></li>
+
+        <div id="dynamics">
+           <h2>Dynamics</h2>
+        </div>
+        <p>So, you have:
+        <ul>
+          <li><blockquote><p>latent dynamics models<p><blockquote> </li>
+          <li><blockquote><p>(back through) the neural network dynamics<p><blockquote></li> 
+          <li><blockquote><p>... learns latent dynamics<p><blockquote></li>
+        </ul>
+        <p>It is clear what is meant by dynamics: the state evolution of a system. The agent/environment system evolves
+          according to actions working on the environment, affecting the trajectory of the environmental state evolution
+          and consequentially, the observations of that environment later in time.
+        </p>
+        <p>
+          Formally, MBRL algorithms are characterized by learning a model of the environment.
+          After repeated interactions with the environment, the experienced transitions are stored in a dataset
+          D = {(s_t, a_t, s_{t+1} )} which is then used to learn a dynamics function f_{φ}. In the case where
+          ground-truth dynamics are deterministic, the learned dynamics function f_{φ} predicts the next state.
+          In stochastic settings, it is common to represent the dynamics with a Gaussian distribution,
+          i.e., p(s_{t+1} |a_t ,s_t ) ∼ N(μ(s_t ,a_T ),Σ(s_t ,a_t )) and the learned dynamics model corresponds to
+          f_{φ} = Nφ(μ(s_t ,a_T ),Σφ(s_t ,a_t )).
+        </p>
+        <p>
+          But, why call them latent dynamics? Are there overt dynamics?
+        </p>
+        <p>
+          Why talk about "neural network dynamics"? There is no model of these dynamics, other than the nn itself.
+        </p>
+        <p>
+          Most likely, latent refers to "represented in a model", whose hidden states are commonly referred to as "latent."
+          Indeed, this checks out with the paper.
+        </p>
+        <p>"latent dynamics" should best be read as learned dynamics. The world model as a simulation of the world
+        the agent lives in, does have its own dynamics, just like the (ground-truth) world/agent has. But we don't
+        make a model of the world model (although inside the recursion you will find such models of models).
+        And, the distinction between the (ground-truth) world/agent system and the world model system is that,
+        the world model captures (hypothesized) actions and rewards as simulated by the Dreamer algorithm.</p>
+        <p>
+          So, the big dysnomer is "neural network dynamics"? It expresses that the neural net is a recurrent net,
+          it may actually refer to one specific neural net of the neural nets used.
+       </p> 
+
+
+
+        <div id="dynamics">
+           <h2>Dynamics</h2>
+        </div>
+
+
+    <p>Then we have:
+    <ul>  
+    <li><blockquote><p>latent imagination<p><blockquote></li>
+    <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
     </ul>
-    <p>It is clear what is meant by dynamics: the state evolution of a system. The agent/environment system evolves according to actions working on 
-      the environment, affecting the trajectory of the environmental state evolution and consequentially observations of that environment later in time.
+      These are synonymous.
     </p>
     <p>
-      But, why call them latent dynamics? Are there overt dynamics?
-    </p>
-    <p>
-      Why talk about neural network dynamics? There is no model of these dynamics, other than the nn itself.
-    </p>
-    <p>
-      You might guess that latent is a different word for neural network, but then you'd get "neural network dynamics models". 
-      You might guess models is a different word for neural network, but then you'd get ".. learns neural network dynamics.." in the third example.
-    </p>
-    <p>
-      I answer this as that the whole system is modelled when using representing "world models" instead of the "live" environment. And to make a distinction
-      between world model dynamics and environmental state evolution, the users use "latent" for the former. 
-    </p>
-    <p>
-    The world model consists of the following components, where the observation model is only used to provide a learning signal,
-     </p>
-    <p>Representationmodel: p<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>,ot) 
-     </p>
-    <p>Observation model: q<msub>θ</msub>(o<msub>t</msub> | s<msub>t</msub>)
-     </p>
-    <p>Reward model: q<msub>θ</msub>(r<msub>t</msub> | s<msub>t</msub>)
+
+<!--
+        <p>
+          The world model consists of the following components, where the observation model is only used to provide a learning signal,
+        </p>
+        <p>Representationmodel: p<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>,ot) 
+        </p>
+        <p>Observation model: q<msub>θ</msub>(o<msub>t</msub> | s<msub>t</msub>)
+        </p>
+        <p>Reward model: q<msub>θ</msub>(r<msub>t</msub> | s<msub>t</msub>)
 
 <script>
 MathJax = {
@@ -96,15 +141,11 @@ MathJax = {
       In the representing world models, the agents own actions
       are represented, its hypothetical world model (recursively) is represented and hypothetical observations and rewards as well. 
       It's not a very satisfying answer.
-      Especially because latent is also used in different contexts than the world model.
-    </p> 
-    <p>Then we have:
-    <ul>  
-    <li><blockquote><p>latent imagination<p><blockquote></li>
-    <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
-    </ul>
-      These are synonymous.
-    </p>
+      Especially because latent is also used in different contexts than the world model. <p-->
+
+
+
+
     <p>
       Then about the learning:
     <ul>
@@ -141,7 +182,7 @@ The model mimics a non-linear Kalman filter (Kalman, 1960), latent state space m
 </p>
         
 
-        <div id="column2">
+        <div id="latent_imagination">
            <h2>3 LEARNING BEHAVIORS BY LATENT IMAGINATION</h2>
         </div>
         <p>Dreamer learns long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging 
@@ -405,6 +446,50 @@ DREAMERTrainer = build_trainer(
           
         
        
+        <div id="imagination_horizon">
+           <h2>IMAGINATION HORIZON</h2>
+        </div>
+        <p>What are the nature and effect of the imagination horizon?
+        At first it may seem as if it is identical to the planning horizon.
+        The discount rate is usually a decay factor that reaches a numerical zero long before infinity.
+        For the rest it is fairly meaningless. Suppose there is some point in 
+        the future for which you might want to increase its contribution to
+        the estimated value. Its weight will be captured in the discount for
+        that timestep, but you will need a more complex program to obtain it.
+        That program will be taking inputs from more than the simple time step
+        which is just an integer. At best, the time step/frequency has also
+        been studied, where multiple time scales or Fourier-like time scales
+        might have been used.
+        </p>
+        <p>
+        The discount and frequency are really not the key element in RL.
+        Getting to an IC room in time matters, or placing a Pong bat
+         somewhere at just the right time matters.
+        In very relevant settings, it really won't matter. For example, say
+        whether to take Paracetamol a few seconds earlier or later. You can try
+        this a million times, but the headache with subside equally effectively.
+        Or just typing the next key stroke a tenth of a second later or earlier, that won't affect the course of your life. Anyway,
+        </p>
+        <blockquote><p> considering only rewards within a fixed imagination 
+        horizon results in shortsighted behaviors (Wang et al., 2019)<p><blockquote>
+        In fact, Wang et al. in their paper describe a <a href="http://www.cs.toronto.edu/~tingwuwang/mbrl.html">
+        benchmark</a> with three key research challenges (for MBRL):
+        <ul><li>
+        the dynamics bottleneck: algorithms with learned dynamics are stuck at
+        performance local minima significantly worse than using ground-truth 
+        dynamics, i.e. the performance does not increase when more data is 
+        collected
+        </li><li>
+        the planning horizon dilemma:  while increasing the planning horizon 
+        provides more accurate reward estimation, it can result in performance
+        drops due to the curse of dimensionality and modelling error
+        </li><li>
+        and the early-termination dilemma: early termination is commonly used 
+        in model-free RL for more directed exploration, to achieve faster 
+        learning
+        </li></ul>
+
+
 
         <p>You see, that was formatted as code because it's been indented by four spaces.</p>
 
