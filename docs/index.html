@@ -25,12 +25,12 @@
           <li><a href="https://github.com/deepdad/SharedWorldModels/tarball/master">Download <strong>TAR Ball</strong></a></li>
           <li><a href="http://github.com/deepdad/SharedWorldModels">Fork On <strong>GitHub</strong></a></li>
         </ul>
-        <p><a href="#column2">Dynamics</a></p>
+        <p><a href="#dynamics">Dynamics</a></p>
         <p><a href="#latent_imagination">Latent Imagination</a></p>
-        <p><a href="#column2">Reparameterization</a></p>
-        <p><a href="#column2">RSSM</a></p>
+        <p><a href="#reparameterization">Reparameterization</a></p>
+        <p><a href="#rssm">RSSM</a></p>
         <p><a href="#imagination_horizon">Imagination Horizon</a></p>
-        <p><a href="#column2">Analytic Gradients</a></p>
+        <p><a href="#analytic_gradients">Analytic Gradients</a></p>
       </header>
       <section>
         <h1>Dreamer V1</h1>
@@ -42,7 +42,7 @@
         
         <p>In the first paper, the authors repeatedly write <blockquote><p>backpropagate through the neural
           network dynamics</blockquote></p> or variants of that. I found that an unclear choice of words. 
-          Especially on first reading. Because you 
+          Especially on the first reading. Because you 
           don't backpropagate through neural network dynamics, do you? You simply backpropagate gradients 
           through a neural network. So what do they mean?</p> 
         <p>Well, as it turns out, just explaining that phrase, explains a lot of the paper and the paper
@@ -61,441 +61,54 @@
         <div id="dynamics">
            <h2>Dynamics</h2>
         </div>
-        <p>So, you have:
-        <ul>
-          <li><blockquote><p>latent dynamics models<p><blockquote> </li>
-          <li><blockquote><p>(back through) the neural network dynamics<p><blockquote></li> 
-          <li><blockquote><p>... learns latent dynamics<p><blockquote></li>
-        </ul>
-        <p>It is clear what is meant by dynamics: the state evolution of a system. The agent/environment system evolves
-          according to actions working on the environment, affecting the trajectory of the environmental state evolution
-          and consequentially, the observations of that environment later in time.
-        </p>
-        <p>
-          Formally, MBRL algorithms are characterized by learning a model of the environment.
-          After repeated interactions with the environment, the experienced transitions are stored in a dataset
-          D = {(s_t, a_t, s_{t+1} )} which is then used to learn a dynamics function f_{φ}. In the case where
-          ground-truth dynamics are deterministic, the learned dynamics function f_{φ} predicts the next state.
-          In stochastic settings, it is common to represent the dynamics with a Gaussian distribution,
-          i.e., p(s_{t+1} |a_t ,s_t ) ∼ N(μ(s_t ,a_T ),Σ(s_t ,a_t )) and the learned dynamics model corresponds to
-          f_{φ} = Nφ(μ(s_t ,a_T ),Σφ(s_t ,a_t )).
-        </p>
-        <p>
-          But, why call them latent dynamics? Are there overt dynamics?
-        </p>
-        <p>
-          Why talk about "neural network dynamics"? There is no model of these dynamics, other than the nn itself.
-        </p>
-        <p>
-          Most likely, latent refers to "represented in a model", whose hidden states are commonly referred to as "latent."
-          Indeed, this checks out with the paper.
-        </p>
-        <p>"latent dynamics" should best be read as learned dynamics. The world model as a simulation of the world
-        the agent lives in, does have its own dynamics, just like the (ground-truth) world/agent has. But we don't
-        make a model of the world model (although inside the recursion you will find such models of models).
-        And, the distinction between the (ground-truth) world/agent system and the world model system is that,
-        the world model captures (hypothesized) actions and rewards as simulated by the Dreamer algorithm.</p>
-        <p>
-          So, the big dysnomer is "neural network dynamics"? It expresses that the neural net is a recurrent net,
-          it may actually refer to one specific neural net of the neural nets used.
-       </p> 
+       <p>In sum, "leveraging the neural network latent dynamics" is what it is.</p>
 
 
-
-        <div id="dynamics">
-           <h2>Dynamics</h2>
-        </div>
-
-
-    <p>Then we have:
-    <ul>  
-    <li><blockquote><p>latent imagination<p><blockquote></li>
-    <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
-    </ul>
-      These are synonymous.
-    </p>
-    <p>
-
-<!--
-        <p>
-          The world model consists of the following components, where the observation model is only used to provide a learning signal,
-        </p>
-        <p>Representationmodel: p<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>,ot) 
-        </p>
-        <p>Observation model: q<msub>θ</msub>(o<msub>t</msub> | s<msub>t</msub>)
-        </p>
-        <p>Reward model: q<msub>θ</msub>(r<msub>t</msub> | s<msub>t</msub>)
-
-<script>
-MathJax = {
-    tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$','$$'], ['\\[','\\]']]
-    }
-};
-</script>
-     </p>
-    <p>Transitionmodel: q<msub>θ</msub>(s<msub>t</msub> | s<msub>t-1</msub>,a<msub>t-1</msub>).  
-    </p>
-    <p>
-      In the representing world models, the agents own actions
-      are represented, its hypothetical world model (recursively) is represented and hypothetical observations and rewards as well. 
-      It's not a very satisfying answer.
-      Especially because latent is also used in different contexts than the world model. <p-->
+       <div id="latent_imagination">
+           <h2>Latent Imagination</h2>
+       </div>
+       <p>Then we have:
+       <ul>  
+         <li><blockquote><p>latent imagination<p><blockquote></li>
+         <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
+       </ul>
+       These are synonymous. And, given the lack of imagery, also a poor choice of words. Rollout would be better or "forward pass."
+       "Latent imagination" is a phrase mainly used in the title. You might as well ignore it.
+       </p>
 
 
-
-
-    <p>
-      Then about the learning:
-    <ul>
-    <li><blockquote><p>encode observations and actions into compact latent states<p><blockquote></li>
-    <li><blockquote><p>(learns) long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging the neural network latent dynamics<p><blockquote></li>  
-    <li><blockquote><p>propagate stochastic gradients of multi-step returns through neural network predictions of actions, states, rewards, and values 
-          using reparameterization ... The latent dynamics define a Markov decision process (MDP; Sutton, 1991) that is fully observed because 
-          the compact model states s<msub>t</msub> are Markovian. We denote imagined quantities with τ as the time index. Imagined trajectories start 
-          at the true model states s<msub>t</msub> of observation sequences drawn from the agent’s past experience. 
-          They follow predictions of the transition model s_τ ∼ q(s_τ | s_{τ−1},a_{τ−1}), reward model r_τ ∼ q(r_τ | s_τ), and a policy a_τ ∼ q(a_τ | s_τ). 
-          The objective is to maximize expected imagined rewards E_q∞τ=t γ_τ−tr_τ with respect to the policy.<p><blockquote></li>
-      </ul>  
-      <p>The learning dynamics of a neural network are known but algebraic. The dynamics of an agent in an environment are modelled. 
-      <pre><code>...<code><pre></p>
-
-      <p>The aforementioned backprop is used in a model that "imagines" things.</p>
-      <p>Several implementations exist. From the <a href="https://github.com/danijar/dreamer" title="authors">authors</a> and Google Research, another one is available in Ray's RLLib, but it is 
-          currently not working. The RLLib implementation replaces the "framework code" (used to manage and run models) with ray specific instructions, but the main model code is based on an 
-          implementation by Julius Frost. In our project we need a pyTorch implementation to run with RLBench. We use the Julius Frost implementation for that, while in the mean time
-          targeting an RLLib contribution, we don't start with the abstraction of the framework code.</p>
-      </p>
-      CONTROL WITH WORLD MODELS
-Reinforcement learning We formulate visual control as a partially observable Markov decision process (POMDP) with discrete time step t ∈ [1; T ], continuous vector-valued actions at ∼ p(at | o≤t, a<t) generated by the agent, and high-dimensional observations and scalar rewards ot, rt ∼ p(ot, rt | o<t, a<t) generated by the unknown environment. The goal is to develop an agent that maximizes the expected sum of rewards Ep 􏰀 􏰍Tt=1 rt 􏰁. Figure 2 shows a selection of our tasks.
-Agent components The classical components of agents that learn in imagination are dynamics learning, behavior learning, and environment interaction (Sutton, 1991). In the case of Dreamer, the behavior is learned by predicting hypothetical trajectories in the compact latent space of the world model. As outlined in Figure 3 and detailed in Algorithm 1, Dreamer performs the following operations throughout the agent’s life time, either interleaved or in parallel:
-• Learning the latent dynamics model from the dataset of past experience to predict future re- wards from actions and past observations. Any learning objective for the world model can be incorporated with Dreamer. We review existing methods for learning latent dynamics in Section 4.
-• Learning action and value models from predicted latent trajectories, as described in Section 3. The value model optimizes Bellman consistency for imagined rewards and the action model is updated by propagating gradients of value estimates back through the neural network dynamics.
-• Executing the learned action model in the world to collect new experience for growing the dataset.
-Latent dynamics Dreamer uses a latent dynamics model that consists of three components. The representation model encodes observations and actions to create continuous vector-valued model states st with Markovian transitions (Watter et al., 2015; Zhang et al., 2019; Hafner et al., 2018). The transition model predicts future model states without seeing the corresponding observations that will later cause them. The reward model predicts the rewards given the model states,
-Representation model: Transition model: Reward model:
-p(st | st−1, at−1, ot)
-q(st | st−1, at−1) (1) q(rt | st).
-We use p for distributions that generate samples in the real environment and q for their approximations that enable latent imagination. Specifically, the transition model lets us predict ahead in the compact latent space without having to observe or imagine the corresponding images. This results in a low memory footprint and fast predictions of thousands of imagined trajectories in parallel.
-The model mimics a non-linear Kalman filter (Kalman, 1960), latent state space model, or HMM with real-valued states. However, it is conditioned on actions and predicts rewards, allowing the agent to imagine the outcomes of potential action sequences without executing them in the environment.
-</p>
-        
-
-        <div id="latent_imagination">
-           <h2>3 LEARNING BEHAVIORS BY LATENT IMAGINATION</h2>
-        </div>
-        <p>Dreamer learns long-horizon behaviors in the compact latent space of a learned world model by efficiently leveraging 
-          the neural network latent dynamics. For this, we propagate stochastic gradients of multi-step returns through neural 
-          network predictions of actions, states, rewards, and values using reparameterization. This section describes the main 
-          contribution of our paper.</p>
-        
-
-        <b>Imagination environment</b> <p> The latent dynamics define a Markov decision process (MDP; Sutton, 1991) that is fully 
-        observed because the compact model states st are Markovian. We denote imagined quantities with τ as the time index. 
-        Imagined trajectories start at the true model states st of observation sequences drawn from the agent’s past experience. 
-        They follow predictions of the transition model sτ ∼ q(sτ | sτ−1,aτ−1), reward model rτ ∼ q(rτ | sτ), and a policy aτ ∼ q(aτ | sτ). 
-        The objective is to maximize expected imagined rewards Eq􏰀􏰍∞τ=t γτ−trτ􏰁 with respect to the policy.</p>
-        
-        <a>https://github.com/deepdad/SharedWorldModels/blob/a52019ff5b43c373946be07652dccd682c9e21ce/dreamer-pytorch/dreamer/models/action.py#L40</a>
-        <pre><code>
-            def forward(self, state_features):
-        x = self.feedforward_model(state_features)
-        dist = None
-        if self.dist == 'tanh_normal':
-            mean, std = torch.chunk(x, 2, -1)
-            mean = self.mean_scale * torch.tanh(mean / self.mean_scale)
-            std = F.softplus(std + self.raw_init_std) + self.min_std
-            dist = torch.distributions.Normal(mean, std)
-            print("dreamer/models/action.py: ", dist)
-            dist = torch.distributions.TransformedDistribution(dist,
-                TanhBijector())
-            dist = torch.distributions.Independent(dist, 1)
-            dist = SampleDist(dist)
-        elif self.dist == 'one_hot':
-            dist = torch.distributions.OneHotCategorical(logits=x)
-        elif self.dist == 'relaxed_one_hot':
-            dist = torch.distributions.RelaxedOneHotCategorical(0.1, logits=x)
-        return dist
-        </pre></code>
-        
-        <h2>Back-Propagation through Random Operations</h2>
-        <blockquote><p> Action and value models Consider imagined trajectories with a finite horizon H. Dreamer uses an actor critic approach to learn 
-          behaviors that consider rewards beyond the horizon. We learn an action model and a value model in the latent space of the world model for this. 
-          The action model implements the policy and aims to predict actions that solve the imagination environment. The value model estimates the expected 
-          imagined rewards that the action model achieves from each state sτ ,
-                Actionmodel: aτ ∼ qφ(aτ |sτ)
-                Value model: vψ(sτ) ≈ Eq(·|s )􏰀􏰍t+H γτ−trτ􏰁. (2)
-          
-          The action and value models are trained cooperatively as typical in policy iteration: the action model aims to maximize an estimate of the value, 
-          while the value model aims to match an estimate of the value that changes as the action model changes.
-          We use dense neural networks for the action and value models with parameters φ and ψ, respectively. 
-          The action model outputs a tanh-transformed Gaussian (Haarnoja et al., 2018) with sufficient statistics predicted by the neural network. 
-          This allows for reparameterized sampling (Kingma and Welling, 2013; Rezende et al., 2014) that views sampled actions as deterministically dependent 
-          on the neural network output, allowing us to backpropagate analytic gradients through the sampling operation,
-           aτ = tanh􏰀μφ(sτ ) + σφ(sτ ) ε􏰁, ε ∼ Normal(0, I). (3)</p></blockquote>
-        
-        <!-- p>So, Dreamer definitely has a generative compartment. It accumulates on partial observation information into a distributed representation, which is
-        then used to generate possible futures.</p-->
-
-        <p>To understand this aspect of Dreamer, I paraphrase Bengio et al. Traditional neural networks implement a deterministic transformation of some input 
+       <div id="reparameterization">
+           <h2>Reparameterization</h2>
+       </div>
+       <p>To understand this aspect of Dreamer, I paraphrase Bengio et al. Traditional neural networks implement a deterministic transformation of some input 
           variables <b>x</b>. 
-          When developing Dreamer's generative component, we wish to extend neural networks to implement stochastic transformations of <b>x</b>. 
-          One straightforward way to do this is to augment the neural network with extra inputs <b>z</b> that are sampled from Gaussian distributions. 
-          The neural network can then continue to perform deterministic computation internally, but the function f(x, z) 
-          will appear stochastic to anobserver who does not have access toz. Provided that f is continuous anddifferentiable, we can then compute the gradients 
-          necessary for training usingback-propagation as usual. </p>
-        <p>As an example, let us consider the operation consisting of <i>drawing samples</i> y from a Gaussian 
-          distribution with mean µ and variance σ2:y ∼ N(µ, σ2). (20.54) <!--Because an individual sample ofyis produced not by a function, but rather bya sampling 
-          process whose output changes every time we query it, it may seemcounterintuitive to take the derivatives ofywith respect to the parameters ofits 
-          distribution,µandσ2. However, we can rewrite the sampling process astransforming an underlying random valuez ∼ N(z; 0,1) to obtain a sample fromthe 
-          desired distribution:y = µ + σz. (20.55)We are now able to back-propagate through the sampling operation, by regard-ing it as a deterministic operation 
-          with an extra inputz. Crucially, the extra inputis a random variable whose distribution is not a function of any of the variableswhose derivatives we 
-          want to calculate. The result tells us how an inﬁnitesimalchange inµorσwould change the output if we could repeat the sampling operationagain with the 
-          same value of z.Being able to back-propagate through this sampling operation allows us toincorporate it into a larger graph. We can build elements of 
-          the graph on top of the output of the sampling distribution. For example, we can compute the derivativesof some loss functionJ(y). We can also build 
-          elements of the graph whose outputsare the inputs or the parameters of the sampling operation. For example, we couldbuild a larger graph withµ=f(x;θ) 
-          andσ=g(x;θ). In this augmented graph,we can use back-propagation through these functions to derive ∇θJ(y).The principle used in this Gaussian sampling 
-          example is more generally appli-cable. We can express any probability distribution of the formp(y;θ) orp(y | x;θ)asp(y | ω), whereωis a variable 
-          containing both parametersθ, and if applicable,the inputsx. Given a valueysampled from distributionp(y | ω), whereωmay inturn be a function of other 
-          variables, we can rewritey ∼ p(y | ω) (20.56)asy = f(z; ω), (20.57)wherezis a source of randomness. We may then compute the derivatives ofywithrespect 
-          toωusing traditional tools such as the back-propagation algorithm appliedtof, as long asfis continuous and diﬀerentiable almost everywhere. Crucially, 
-          ω must not be a function ofz, andzmust not be a function ofω. This techniqueis often called thereparametrization trick,stochastic back-propagation, or
-          perturbation analysis.The requirement thatfbe continuous and diﬀerentiable of course requiresyto be continuous. If we wish to back-propagate through a 
-          sampling process thatproduces discrete-valued samples, it may still be possible to estimate a gradient onω, using reinforcement learning algorithms such 
-          as variants of the REINFORCEalgorithm (Williams, 1992), discussed in section 20.9.1.In neural network applications, we typically choosezto be drawn from 
-          somesimple distribution, such as a unit uniform or unit Gaussian distribution, andachieve more complex distributions by allowing the deterministic portion 
-          of thenetwork to reshape its input.The idea of propagating gradients or optimizing through stochastic operationsdates back to the mid-twentieth century 
-          (Price, 1958; Bonnet, 1964) and wasﬁrst used for machine learning in the context of reinforcement learning (Williams,1992). More recently, it has been 
-          applied to variational approximations (Opperand Archambeau, 2009) and stochastic and generative neural networks (Bengioet al., 2013b; Kingma, 2013; 
-          Kingma and Welling, 2014b,a; Rezende et al., 2014;Goodfellow et al., 2014c). Many networks, such as denoising autoencoders ornetworks regularized with 
-          dropout, are also naturally designed to take noise as an input without requiring any special reparametrization to make the noiseindependent from the model.
-         <-->
-         </p>
-        
-        <p>
-        Value estimation To learn the action and value models, we need to estimate the state values
-of imagined trajectories {s , a , r }t+H . These trajectories branch off of the model states s of τ τ τ τ=t t
-sequence batches drawn from the agent’s dataset of experience and predict forward for the imagination horizon H using actions sampled from the action model. State values can be estimated in multiple ways that trade off bias and variance (Sutton and Barto, 2018),
-(4)
-with h=min(τ+k,t+H), (5)
-Vλ(sτ) =. (1−λ) 􏰎 λn−1VNn(sτ)+λH−1VNH(sτ), (6)
-. 􏰿t+H 􏱀 V(s)=E 􏰎r ,
-Rτqθ,qφ n n=τ
-. 􏰿h−1 􏱀 Vk(s )=E 􏰎γn−τr +γh−τv (s )
-Nτqθ,qφ nψh n=τ
-H−1 n=1
-where the expectations are estimated under the imagined trajectories. VR simply sums the rewards from τ until the horizon and ignores rewards beyond it. This allows learning the action model without avaluemodel,anablationwecomparetoinourexperiments.VNk estimatesrewardsbeyondksteps with the learned value model. Dreamer uses Vλ, an exponentially-weighted average of the estimates for different k to balance bias and variance. Figure 4 shows that learning a value model in imagination enables Dreamer to solve long-horizon tasks while being robust to the imagination horizon. The experimental details and results on all tasks are described in Section 6.
-        </p>
-        
-        <p>
-        Learning objective To update the action and value models, we first compute the value estimates Vλ(sτ)forallstatessτ alongtheimaginedtrajectories.Theobjectivefortheactionmodelqφ(aτ |sτ) is to predict actions that result in state trajectories with high value estimates. The objective for the value model vψ (sτ ), in turn, is to regress the value estimates,
-􏰿t+H 􏱀
-maxE 􏰎V(s) , (7)
-􏰿t+H 1 2􏱀
-φ qθ,qφ
-τ=t
-λ τ
-minE
-􏰎 􏰾􏰾v(s)−V(s))􏰾􏰾 . (8)
-ψ qθ,qφ
-2􏰾ψ τ λ τ 􏰾
-τ=t
-The value model is updated to regress the targets, around which we stop the gradient as typical
-(Sutton and Barto, 2018). The action model uses analytic gradients through the learned dynamics
-to maximize the value estimates. To understand this, we note that the value estimates depend on
-the reward and value predictions, which depend on the imagined states, which in turn depend on
-the imagined actions. Since all steps are implemented as neural networks, we analytically compute
-∇ E 􏰀 􏰍t+H V (s )􏰁 by stochastic backpropagation (Kingma and Welling, 2013; Rezende φ qθ,qφ τ=t λ τ
-et al., 2014). We use reparameterization for continuous actions and latent states and straight-through gradients (Bengio et al., 2013) for discrete actions. The world model is fixed while learning behaviors.
-In tasks with early termination, the world model also predicts the discount factor from each latent state to weigh the time steps in Equations 7 and 8 by the cumulative product of the predicted discount factors, so terms are weighted down based on how likely the imagined trajectory would have ended.
-Comparison to actor critic methods Agents using Reinforce gradients (Williams, 1992), such as A3C and PPO (Mnih et al., 2016; Schulman et al., 2017), employ value baselines to reduce gradient variance, while Dreamer backpropagates through the value model. This is similar to deterministic or reparameterized actor critics (Silver et al., 2014), such as DDPG and SAC (Lillicrap et al., 2015; Haarnoja et al., 2018). However, these do not leverage gradients through transitions and only maximize immediate Q-values. MVE and STEVE (Feinberg et al., 2018; Buckman et al., 2018) extend them to multi-step Q-learning with learned dynamics to provide more accurate Q-value targets. We predict state values, which is sufficient for policy optimization since we backpropagate through the dynamics. Refer to Section 5 for a more detailed comparison to related work.
-4 LEARNING LATENT DYNAMICS
-Learning behaviors in imagination requires a world model that generalizes well. We focus on latent dynamics models that predict forward in a compact latent space, facilitating long-term predictions and allowing the agent to imagine thousands of trajectories in parallel. Several objectives for learning representations for control have been proposed (Watter et al., 2015; Jaderberg et al., 2016; Oord et al., 2018; Eslami et al., 2018). We review three approaches for learning representations to use with Dreamer: reward prediction, image reconstruction, and contrastive estimation.
-Reward prediction Latent imagination requires a representation model p(st | st−1, at−1, ot), transition model q(st | st−1,at−1,), and reward model q(rt | st), as described in Section 2. In principle, this could be achieved by simply learning to predict future rewards given actions and past observations (Oh et al., 2017; Gelada et al., 2019; Schrittwieser et al., 2019). With a large and diverse dataset, such representations should be sufficient for solving a control task. However, with a finite dataset and especially when rewards are sparse, learning about observations that correlate with rewards is likely to improve the world model (Jaderberg et al., 2016; Gregor et al., 2019).
-        </p>
-        
-        <p>
-        Reconstruction We first describe the world model used by PlaNet (Hafner et al., 2018) that learns latent dynamics by reconstructing images as shown in Figure 3a. The world model consists of the following components, where the observation model is only used to provide a learning signal,
-Representationmodel: Observation model: Reward model: Transitionmodel:
-pθ(st |st−1,at−1,ot) qθ(ot | st)
-qθ(rt | st)
-qθ(st |st−1,at−1).
-(9)
-The components are optimized jointly to increase the variational lower bound (ELBO; Jordan et al., 1999) or more generally the variational information bottleneck (VIB; Tishby et al., 2000; Alemi et al., 2016). As derived in Appendix B, the bound includes reconstruction terms for observations and rewards and a KL regularizer. The expectation is taken under the dataset and representation model,
-.􏰿􏰎􏰅ttt􏰆􏱀 t.
-JREC =Ep JO +JR +JD +const JO = lnq(ot |st)
-t
-JRt =. ln q(rt | st) JDt =. −β KL 􏰀p(st | st−1, at−1, ot) 􏰾􏰾 q(st | st−1, at−1)􏰁.
-(10)
-                  <blockquote><p>We implement the transition model as a recurrent state space model (RSSM; Hafner et al., 2018),</p> </blockquote>
-        <blockquote><p>the representation model by combining the RSSM with a convolutional neural network (CNN; LeCun et al., 1989) applied to the image observation,</blockquote> 
-        <blockquote><p>the observation model as a transposed CNN, and the reward model as a dense network. </p></blockquote>
-        <blockquote><p>The combined parameter vector θ is updated by stochastic backpropagation.</p></blockquote>
 
-     
-We implement the transition model as a recurrent state space model (RSSM; Hafner et al., 2018), the representation model by combining the RSSM with a convolutional neural network (CNN; LeCun et al., 1989) applied to the image observation, the observation model as a transposed CNN, and the reward model as a dense network. The combined parameter vector θ is updated by stochastic backpropagation (Kingma and Welling, 2013; Rezende et al., 2014). Figure 5 shows video predictions of this model. We refer to Appendix A and Hafner et al. (2018) model details.
-Contrastive estimation Predicting pixels can require high model capacity. We can also encourage mutual information between model states and observations by instead predicting the states from the images (Guo et al., 2018). This replaces the observation model with a state model,
-State model: qθ(st | ot). (11)
-While the reconstruction objective used the fact that the observation marginal is a constant, we now face the state marginal. As shown in Appendix B, this can be estimated via noise contrastive estimation (NCE; Gutmann and Hyvärinen, 2010; Oord et al., 2018) by averaging the state model over observations o′ of the current sequence batch. Intuitively, q(st | ot) makes the state predictable from the current image while ln 􏰍o′ q(st | o′) keeps it diverse to prevent collapse,
-.􏰿􏰎􏰅t t t􏰆􏱀t. 􏰿􏰎 ′􏱀
-JNCE = E JS +JR +JD JS = lnq(st |ot)−ln
-t o′
-q(st |o) . (12)
-We implement the state model as a CNN and again optimize the bound with respect to the combined parameter vector θ using stochastic backpropagation. While avoiding pixel prediction, the amount of information this bound can extract efficiently is limited (McAllester and Statos, 2018). We empirically compare reward, reconstruction, and contrastive objectives in our experiments in Figure 8.
-        </p>
 
-        
-        <p>
-        
-        6 EXPERIMENTS
-We experimentally evaluate Dreamer on a variety of control tasks. We designed the experiments to compare Dreamer to current best methods in the literature, and to evaluate its ability to solve tasks with long horizons, continuous actions, discrete actions, and early termination. We further compare the orthogonal choice of learning objective for the world model. The source code for all our experiments and videos of Dreamer are available at https://danijar.com/dreamer.
-Control tasks We evaluate Dreamer on 20 visual control tasks of the DeepMind Control Suite (Tassa et al., 2018), illustrated in Figure 2. These tasks pose a variety of challenges, including sparse rewards, contact dynamics, and 3D scenes. We selected the tasks on which Tassa et al. (2018) report non-zero performance from image inputs. Agent observations are images of shape 64 × 64 × 3, actions range from 1 to 12 dimensions, rewards range from 0 to 1, episodes last for 1000 steps and have randomized initial states. We use a fixed action repeat of R = 2 across tasks. We further evaluate the applicability of Dreamer to discrete actions and early termination on a subset of Atari games (Bellemare et al., 2013) and DeepMind Lab levels (Beattie et al., 2016) as detailed in Appendix C.
-Implementation Our implementation uses TensorFlow Probability (Dillon et al., 2017). We use a single Nvidia V100 GPU and 10 CPU cores for each training run. The training time for our Dreamer implementation is about 3 hours per 106 environment steps on the control suite, compared to 11 hours for online planning using PlaNet, and the 24 hours used by D4PG to reach similar performance. We use the same hyper parameters across all continuous tasks, and similarly across all discrete tasks, detailed in Appendix A. The world models are learned via reconstruction unless specified.
-Baseline methods The highest reported performance on the continuous tasks is achieved by D4PG (Barth-Maron et al., 2018), an improved variant of DDPG (Lillicrap et al., 2015) that uses distributed collection, distributional Q-learning, multi-step returns, and prioritized replay. We include the scores for D4PG with pixel inputs and A3C (Mnih et al., 2016) with state inputs from Tassa et al. (2018). PlaNet (Hafner et al., 2018) learns the same world model as Dreamer and selects actions via online planning without an action model and drastically improves over D4PG and A3C in data efficiency. We re-run PlaNet with R = 2 for a unified experimental setup. For Atari, we show the final performance of SimPLe (Kaiser et al., 2019), DQN (Mnih et al., 2015) and Rainbow (Hessel et al., 2018) reported by Castro et al. (2018), and for DeepMind Lab that of IMPALA (Espeholt et al., 2018) as a guideline.
-Episode Return
-Episode Return
-Performance To evaluate the performance of Dreamer, we compare it to state-of-the-art reinforce- ment learning agents. The results are summarized in Figure 6. With an average score of 823 across tasks after 5 × 106 environment steps, Dreamer exceeds the performance of the strong model-free D4PG agent that achieves an average of 786 within 108 environment steps. At the same time, Dreamer inherits the data-efficiency of PlaNet, confirming that the learned world model can help to generalize from small amounts of experience. The empirical success of Dreamer shows that learning behaviors by latent imagination with world models can outperform top methods based on experience replay.
-Long horizons To investigate its ability to learn long-horizon behaviors, we compare Dreamer to alternatives for deriving behaviors from the world model at various horizon lengths. For this, we learn an action model to maximize imagined rewards without a value model and compare to online planning using PlaNet. Figure 4 shows the final performance for different imagination horizons, confirming that the value model makes Dreamer more robust to the horizon and performs well even for short horizons. Performance curves for all 19 tasks with horizon of 20 are shown in Appendix D, where Dreamer outperforms the alternatives on 16 of 20 tasks, with 4 ties.
-Representation learning Dreamer can be used with any differentiable dynamics model that pre- dicts future rewards given actions and past observations. Since the representation learning objective is orthogonal to our algorithm, we compare three natural choices described in Section 4: pixel recon- struction, contrastive estimation, and pure reward prediction. Figure 8 shows clear differences in task performance for different representation learning approaches, with pixel reconstruction outperform- ing contrastive estimation on most tasks. This suggests that future improvements in representation learning are likely to translate to higher task performance with Dreamer. Reward prediction alone was not sufficient in our experiments. Further ablations are included in the appendix of the paper.
+       <div id="rssm">
+           <h2>RSSM</h2>
+       </div>
+       <p>Planet, people, profit</p>
+       <p>At Google, we put PlaNet first, a neural network. It comes before the people we intend to replace, brainwash or mollify. Leading to profit.</p>
 
-        </p>
-        
-        
-         <h2>RLLib</h2>
-        <pre><code>
-# RLLib uses trainers
-# # RLlib Trainer classes coordinate the distributed workflow of running rollouts and optimizing policies. They do this by leveraging Ray parallel iterators to implement the desired computation pattern. The following figure shows synchronous sampling, the simplest of these patterns:
-# RLlib uses Ray actors to scale training from a single core to many thousands of cores in a cluster. You can configure the parallelism used for training by changing the num_workers parameter. Check out our scaling guide for more details here.
-DREAMERTrainer = build_trainer(
-    name="Dreamer",
-# look through the default config
-    default_config=DEFAULT_CONFIG,
-# Policies¶
-# Policies are a core concept in RLlib. In a nutshell, policies are Python classes that define how an agent acts in an environment. Rollout workers query the policy to determine agent actions. In a gym environment, there is a single agent and policy. Like we saw in the practical part of the Lab.
-# The Dreamer DMCEnv(core.Env) class looks more like a gym Env than a VectorEnv. Indeed, it seems to convert DM_control env to gym env., in turn a gym could be vectorized but Dreamer doesn't seem to do that. INSTEAD, EACH WORKER GETS ONE ENV.
-# In vector envs, policy inference is for multiple agents at once, and in multi-agent, there may be multiple policies, each controlling one or more agents:
-# Policies each define a learn_on_batch() method that improves the policy given a sample batch of input. For TF and Torch policies, this is implemented using a loss function that takes as input sample batch tensors and outputs a scalar loss
-#
-# Policies can be implemented using any framework. However, for TensorFlow and PyTorch, RLlib has build_tf_policy and build_torch_policy helper functions that let you define a trainable policy with a functional-style API.
-# both pass the DreamerPolicy:
-    default_policy=DreamerTorchPolicy,
-    get_policy_class=get_policy_class,
-# THE EXECUTION PLAN HERE CONTAINS DRAMERITERATION WHICH CONTAINS THE AFOREMENTIONED LEARN_ON_BATCH() METHOD:
-#def execution_plan(workers, config):
-#    episode_buffer = EpisodicBuffer(length=config["batch_length"])
-#    local_worker = workers.local_worker()
-#    rollouts = ParallelRollouts(workers)
-#    rollouts = rollouts.for_each(
-#        DreamerIteration(local_worker, episode_buffer, dreamer_train_iters,
-#                         batch_size, act_repeat))
-#            -> IN DREAMERITERATION:
-#            fetches = self.worker.learn_on_batch(batch)
-    execution_plan=execution_plan,
-    validate_config=validate_config)
-# SO, INTERESTINGLY, THIS DIFFERS FROM THE DEFAULT: LEARN_ON_BATCH EXECUTES IN A DREAMERITERATION THAT IS PART OF THE ROLLOUT OF THE PARALLELROLLOUTS(WORKERS)
-# AS SUCH, THE QUESTION IS HOW THE POLICY CAN INTERACT WITH THIS NESTED CONTROL STRUCTURE? IT SEEMS POSSIBLE THAT THE POLLICY FIRST SUPPLIES THE LOCAL WORKERS THAT ARE THEN EACH GIVEN A TASK, HOWEVER THE WORKERS ARE SUPPLIED BY RAY/RLLIB/TRAINER, THE POLICY IS JUST A POLICY: A STATE->ACTION MAPPING
-# ""This is the computation graph for workers (inner adaptation steps)
-#  def compute_dreamer_loss""
-# FROM THIS QUOTE IT SHOW THAT THE POLICY HANDS WORKERS THINGS SUCH AS A LOSS COMPUTATION
-# SO IT IS THE TRAINER THAT HANDLES THE WORKERS AND THEIR JOBS AND THEY ARE GENERIC AND GIVEN A LOSS THAT FITS A TEMPLATE, THE WORKERS CAN LEARN IN THE INSTRUCTED WAY ON A SAMPLE BATCH:
-# INDEED BUILD_TRAINER CONTAINS: ""
-# Creating all workers (excluding evaluation workers).
-#            self.workers = self._make_workers(
-#                env_creator=env_creator,
-#                validate_env=validate_env,
-#                policy_class=self._policy_class,
-#                config=config,
-#                num_workers=self.config["num_workers"])
-#            self.execution_plan = execution_plan
-#            self.train_exec_impl = execution_plan(self.workers, config)
-# ""
-# _MAKE_WORKERS() THEN IS (KIND OF LAMELY) DEFINED AS
-#    def _make_workers(
-#            self, *, env_creator: Callable[[EnvContext], EnvType],
-#            validate_env: Optional[Callable[[EnvType, EnvContext], None]],
-#            policy_class: Type[Policy], config: TrainerConfigDict,
-#            num_workers: int) -> WorkerSet:
-#        """Default factory method for a WorkerSet running under this Trainer.
-#        Override this method by passing a custom `make_workers` into
-#        `build_trainer`.
-#        Args:
-#            env_creator (callable): A function that return and Env given an env
-#                config.
-#            validate_env (Optional[Callable[[EnvType, EnvContext], None]]):
-#                Optional callable to validate the generated environment (only
-#                on worker=0).
-#            policy (Type[Policy]): The Policy class to use for creating the
-#                policies of the workers.
-#            config (TrainerConfigDict): The Trainer's config.
-#            num_workers (int): Number of remote rollout workers to create.
-#                0 for local only.
-#        Returns:
-#            WorkerSet: The created WorkerSet.
-#        """
-#        return WorkerSet(
-#            env_creator=env_creator,
-#            validate_env=validate_env,
-#            policy_class=policy_class,
-#            trainer_config=config,
-#            num_workers=num_workers,
-#            logdir=self.logdir)
-#
-# DREAMERTrainer ITSELF IS AGAIN JUST A DATA STRUCTURE, IT IS OBTAINED FROM THE COMMAND LINE AND HANDLED BY RLLIB TRAIN
-</code></pre>          
+
+       <div id="imagination_horizon">
+           <h2>Imagination Horizon</h2>
+       </div>
+
+
+       <div id="analytic_gradients">
+           <h2>Analytic Gradients</h2>
+       </div>
+
+
+
           
         
        
         <div id="imagination_horizon">
            <h2>IMAGINATION HORIZON</h2>
         </div>
-        <p>What are the nature and effect of the imagination horizon?
-        At first it may seem as if it is identical to the planning horizon.
-        The discount rate is usually a decay factor that reaches a numerical zero long before infinity.
-        For the rest it is fairly meaningless. Suppose there is some point in 
-        the future for which you might want to increase its contribution to
-        the estimated value. Its weight will be captured in the discount for
-        that timestep, but you will need a more complex program to obtain it.
-        That program will be taking inputs from more than the simple time step
-        which is just an integer. At best, the time step/frequency has also
-        been studied, where multiple time scales or Fourier-like time scales
-        might have been used.
-        </p>
-        <p>
-        The discount and frequency are really not the key element in RL.
-        Getting to an IC room in time matters, or placing a Pong bat
-         somewhere at just the right time matters.
-        In very relevant settings, it really won't matter. For example, say
-        whether to take Paracetamol a few seconds earlier or later. You can try
-        this a million times, but the headache with subside equally effectively.
-        Or just typing the next key stroke a tenth of a second later or earlier, that won't affect the course of your life. Anyway,
-        </p>
-        <blockquote><p> considering only rewards within a fixed imagination 
-        horizon results in shortsighted behaviors (Wang et al., 2019)<p><blockquote>
-        In fact, Wang et al. in their paper describe a <a href="http://www.cs.toronto.edu/~tingwuwang/mbrl.html">
-        benchmark</a> with three key research challenges (for MBRL):
-        <ul><li>
-        the dynamics bottleneck: algorithms with learned dynamics are stuck at
-        performance local minima significantly worse than using ground-truth 
-        dynamics, i.e. the performance does not increase when more data is 
-        collected
-        </li><li>
-        the planning horizon dilemma:  while increasing the planning horizon 
-        provides more accurate reward estimation, it can result in performance
-        drops due to the curse of dimensionality and modelling error
-        </li><li>
-        and the early-termination dilemma: early termination is commonly used 
-        in model-free RL for more directed exploration, to achieve faster 
-        learning
-        </li></ul>
-
-
-
-        <p>You see, that was formatted as code because it's been indented by four spaces.</p>
-
-        <p>How about we throw some angle braces and ampersands in there?</p>
-
-        <pre><code>&lt;div class="footer"&gt;
+          <pre><code>&lt;div class="footer"&gt;
     &amp;copy; 2004 Foo Corporation
 &lt;/div&gt;
 </code></pre>
