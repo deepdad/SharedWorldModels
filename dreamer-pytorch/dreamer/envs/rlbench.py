@@ -1,3 +1,4 @@
+import numpy as np
 from rlpyt.envs.base import Env, EnvStep
 from rlpyt.spaces.int_box import IntBox
 from rlpyt.spaces.float_box import FloatBox
@@ -5,6 +6,8 @@ from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
 from rlbench.observation_config import ObservationConfig, CameraConfig
 from rlbench.tasks import ReachTarget
+
+from dreamer.envs.env import EnvInfo
 
 
 class RLBench(Env):
@@ -20,7 +23,7 @@ class RLBench(Env):
                                                               CameraConfig(image_size=(64, 64)),
                                                               CameraConfig(image_size=(64, 64))))
         action_mode = self.config.get("action_mode", ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
-        headless = self.config.get("headless", False)
+        headless = self.config.get("headless", True)
         env = Environment(action_mode, obs_config=obs, headless=headless)
         env.launch()
         task = env.get_task(self.config.get("task", ReachTarget))
@@ -37,12 +40,15 @@ class RLBench(Env):
 
     def step(self, action):
         obs, reward, done = self._task.step(action)
-        return EnvStep(obs.front_camera, reward, done, {})
+        obs = np.transpose(obs.front_rgb, (2, 0, 1))
+        info = EnvInfo(None, None, done)
+        return EnvStep(obs, reward, done, info)
 
     def reset(self):
         descriptions, obs = self._task.reset()
+        obs = np.transpose(obs.front_rgb, (2, 0, 1))
         del descriptions  # Not used.
-        return obs.front_camera
+        return obs
 
     def render(self, *args, **kwargs):
         pass
