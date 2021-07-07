@@ -41,7 +41,10 @@ def build_and_train(log_dir, game="walker", benchmark=RLBench, run_ID=0, cuda_id
         eval_max_steps=int(10e3),
         eval_max_trajectories=5,
     )
-    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict)
+
+    batch_size = 50
+    batch_length = 50
+    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=batch_size, batch_length=batch_length)
     # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
     #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
     agent = BenchmarkDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
@@ -86,6 +89,10 @@ if __name__ == "__main__":
         print(f'run {i} already exists. ')
         i += 1
     print(f'Using run id = {i}')
+    if args.benchmark == "RlBench":
+        benchmark = RLBench
+    else:
+        benchmark = DeepMindControl
     args.run_ID = i
     build_and_train(
         log_dir,
