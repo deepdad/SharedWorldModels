@@ -32,8 +32,10 @@ def build_and_train(log_dir, game="walker", benchmark=RLBench, run_ID=0, cuda_id
     sampler = SerialSampler(
         EnvCls=factory_method,
         TrajInfoCls=TrajInfo,
+
         env_kwargs=dict(name=game),
         eval_env_kwargs=dict(name=game),
+
         batch_T=1,
         batch_B=1,
         max_decorrelation_steps=0,
