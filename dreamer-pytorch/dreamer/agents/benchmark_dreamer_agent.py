@@ -2,8 +2,11 @@ from dreamer.agents.dreamer_agent import DreamerAgent
 from dreamer.models.agent import AtariDreamerModel
 
 
-class DMCDreamerAgent(DreamerAgent):
-
+class BenchmarkDreamerAgent(DreamerAgent):
+    """
+    This used to be called DMCDreamerAgent, but RLBench environments have the same
+    API. The naming is a little confusing; here, AtariDreamerModel is imported.
+    """
     def __init__(self, ModelCls=AtariDreamerModel, **kwargs):
         super().__init__(ModelCls=ModelCls, **kwargs)
 

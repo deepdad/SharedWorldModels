@@ -8,7 +8,7 @@ from rlpyt.runners.minibatch_rl import MinibatchRlEval, MinibatchRl
 from rlpyt.samplers.serial.sampler import SerialSampler
 from rlpyt.utils.logging.context import logger_context
 
-from dreamer.agents.dmc_dreamer_agent import DMCDreamerAgent
+from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
 from dreamer.envs.dmc import DeepMindControl
@@ -26,7 +26,7 @@ def build_and_train(log_dir, game="walker", benchmark=RLBench, run_ID=0, cuda_id
 
     action_repeat = 2
     factory_method = make_wapper(
-        DeepMindControl,
+        benchmark,
         [ActionRepeat, NormalizeActions, TimeLimit],
         [dict(amount=action_repeat), dict(), dict(duration=1000 / action_repeat)])
     sampler = SerialSampler(
@@ -42,7 +42,9 @@ def build_and_train(log_dir, game="walker", benchmark=RLBench, run_ID=0, cuda_id
         eval_max_trajectories=5,
     )
     algo = Dreamer(initial_optim_state_dict=optimizer_state_dict)
-    agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
+    # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
+    #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
+    agent = BenchmarkDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
                             expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
     runner_cls = MinibatchRlEval if eval else MinibatchRl
     runner = runner_cls(
