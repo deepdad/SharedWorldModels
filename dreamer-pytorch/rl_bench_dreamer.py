@@ -18,7 +18,7 @@ from dreamer.envs.normalize_actions import NormalizeActions
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=None, eval=False, save_model='last', load_model_path=None):
+def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=0, eval=False, save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
     optimizer_state_dict = params.get('optimizer_state_dict')
@@ -27,7 +27,7 @@ def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=None, eval=False,
     factory_method = make_wapper(
         RLBench,
         [ActionRepeat, NormalizeActions, TimeLimit],
-        [dict(amount=action_repeat), dict(), dict(duration=1000 / action_repeat)])
+        [dict(amount=action_repeat), dict(), dict(duration=250 / action_repeat)])
     sampler = SerialSampler(
         EnvCls=factory_method,
         TrajInfoCls=TrajInfo,
@@ -48,7 +48,7 @@ def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=None, eval=False,
         algo=algo,
         agent=agent,
         sampler=sampler,
-        n_steps=1e4,
+        n_steps=1e6,
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
@@ -61,9 +61,9 @@ def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=None, eval=False,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--game', help='Atari game', default='cheetah_run')
+    parser.add_argument('--game', help='Atari game', default='ReachTarget')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
-    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=None)
+    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--save-model', help='save model', type=str, default='last',
                         choices=['all', 'none', 'gap', 'last'])

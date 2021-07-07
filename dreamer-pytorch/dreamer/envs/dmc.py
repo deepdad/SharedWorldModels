@@ -1,8 +1,7 @@
-import gym
+
 import numpy as np
 from dm_control import suite
 from rlpyt.envs.base import Env, EnvStep
-from rlpyt.utils.collections import namedarraytuple
 from rlpyt.spaces.int_box import IntBox
 from rlpyt.spaces.float_box import FloatBox
 

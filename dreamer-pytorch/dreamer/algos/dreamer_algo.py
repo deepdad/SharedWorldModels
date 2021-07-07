@@ -28,7 +28,7 @@ class Dreamer(RlAlgorithm):
             self,  # Hyper-parameters
             batch_size=35,
             batch_length=35,
-            train_every=1000,
+            train_every=250,
             train_steps=100,
             pretrain=100,
             model_lr=6e-4,

@@ -1,16 +1,17 @@
-import gym
-import rlbench.gym
+import time
 
-env = gym.make('reach_target-state-v0', render_mode='human')
+import rlbench.gym as gym
+from rlbench.tasks import ReachTarget
 
-training_steps = 120
+env = gym.RLBenchEnv(ReachTarget, observation_mode="vision", render_mode='rgb_array')
+
+training_steps = 1000
 episode_length = 40
+before = time.time()
 for i in range(training_steps):
-    if i % episode_length == 0:
-        print('Reset Episode')
-        obs = env.reset()
     obs, reward, terminate, _ = env.step(env.action_space.sample())
-    env.render()  # Note: rendering increases step time.
-
+    print(i)
 print('Done')
+after = time.time()
+print(after-before)
 env.close()
