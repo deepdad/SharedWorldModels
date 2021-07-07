@@ -1,3 +1,4 @@
+dreamer-pytorch/data/local/*
 data/local/*
 MUJOCO/
 CoppeliaSim_Edu_V4_1_0_Ubuntu20_04/
@@ -19,6 +20,9 @@ gluttest*
 __pycache__/
 *.py[cod]
 *$py.class
+
+# IDE
+.idea/
 
 # C extensions
 *.so
