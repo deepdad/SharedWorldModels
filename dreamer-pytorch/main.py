@@ -14,11 +14,12 @@ from dreamer.envs.wrapper import make_wapper
 from dreamer.envs.dmc import DeepMindControl
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
-
+from dreamer.envs.rlbench import RLBench
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=None, eval=False, save_model='last', load_model_path=None):
+def build_and_train(log_dir, game="walker", benchmark=RLBench, run_ID=0, cuda_idx=None, eval=False,
+                    save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
     optimizer_state_dict = params.get('optimizer_state_dict')
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--game', help='Atari game', default='cheetah_run')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
-    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
+    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=None)
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--save-model', help='save model', type=str, default='last',
                         choices=['all', 'none', 'gap', 'last'])
