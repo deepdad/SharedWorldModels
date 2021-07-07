@@ -63,6 +63,7 @@ def build_and_train(log_dir, game="walker", benchmark=RLBench, run_ID=0, cuda_id
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--game', help='Atari game', default='cheetah_run')
+    parser.add_argument('--benchmark', help='Benchmark to use', default='RLBench')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=None)
     parser.add_argument('--eval', action='store_true')
@@ -87,6 +88,7 @@ if __name__ == "__main__":
     build_and_train(
         log_dir,
         game=args.game,
+        benchmark=args.benchmark,
         run_ID=args.run_ID,
         cuda_idx=args.cuda_idx,
         eval=args.eval,
