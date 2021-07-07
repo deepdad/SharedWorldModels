@@ -45,7 +45,6 @@ class ActionDecoder(nn.Module):
             mean = self.mean_scale * torch.tanh(mean / self.mean_scale)
             std = F.softplus(std + self.raw_init_std) + self.min_std
             dist = torch.distributions.Normal(mean, std)
-            print("dreamer/models/action.py: ", dist)
             dist = torch.distributions.TransformedDistribution(dist,
                 TanhBijector())
             dist = torch.distributions.Independent(dist, 1)
