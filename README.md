@@ -159,16 +159,24 @@ xvfb-run python3 my_pyrep_app.py
 # xvfb-run jupyter notebook
 ```
 
-## Running Headless
+Now head back to the RLBench folder, which is located in this repo, but that being a git repo itself,
+its changes are not tracked by the SharedWorldModels repo.
+The relative path in the following assumes that RLBench is at SharedWorldModels/RLBench.
+I move:  
+SharedWorldModels/RLBench/rlbench/tasks/reach_target.py  
+to SharedWorldModels/rlbench_changes, then from SharedWorldModels/RLBench/rlbench/tasks/, I do  
+```
+ln -s  ../../../rlbench_changes/reach_target.py reach_target.py
+```
+so that the reach_target.py file is read via a symlink from the SharedWorldModels/rlbench_changes folder.
+This allows making changes in the RLBench repo that are tracked by the SWM repo.
 
-
-Now head back to RLBEnch and finish the [installation](https://github.com/stepjam/RLBench#install):
+To finish or to update the RLBench [installation](https://github.com/stepjam/RLBench#install),
+in SharedWorldModels/RLBench:
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt #only when needed
 pip install .
 ```
-I delete the .git folders in these three repo folders.  
-
 
 ## Running Headless
 
@@ -194,17 +202,7 @@ python my_pyrep_app.py
 ```
 To render with the second GPU, you will insetad set display as: `export DISPLAY=:0.1`, and so on.
 
-**Acknowledgement**: Special thanks to Boyuan Chen (UC Berkeley) for bringing VirtualGL to my attention!
-
-
-
-
-### rllib
-pip --version  
-pip install 'ray[tune]'  
-pip install 'ray[default]'  
-
-## Running Experiments
+Note: VirtualGL may be installed on servers with sudo access rights. It is not available on the tfpool.
 
 To run with mujoco, run `python main_mjc.py`, add arguments
 To run with RLBench, run `python main_rlb.py`. add arguments
