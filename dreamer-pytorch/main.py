@@ -89,10 +89,12 @@ if __name__ == "__main__":
         print(f'run {i} already exists. ')
         i += 1
     print(f'Using run id = {i}')
-    if args.benchmark == "RlBench":
+    print(args.benchmark)
+    if args.benchmark == "RLBench":
         benchmark = RLBench
     else:
         benchmark = DeepMindControl
+    print(benchmark)
     args.run_ID = i
     build_and_train(
         log_dir,
