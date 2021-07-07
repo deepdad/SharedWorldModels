@@ -97,7 +97,7 @@ if __name__ == "__main__":
     build_and_train(
         log_dir,
         game=args.game,
-        benchmark=args.benchmark,
+        benchmark=benchmark,
         run_ID=args.run_ID,
         cuda_idx=args.cuda_idx,
         eval=args.eval,
