@@ -11,15 +11,16 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-from dreamer.envs.dmc import DeepMindControl
+# from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
+from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
-from dreamer.envs.rlbench import RLBench
+
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0, cuda_idx=None, eval=False,               #
+def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,               #
                     save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
@@ -38,11 +39,12 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         #                                         dict(),
         #                                                       dict(amount=action_repeat))
         # so, how to pass arguments to base_class?
-    environments_args = environments_eval_args = {}
-    if isinstance(environments, DeepMindControl):
-        environments_args = dict(name=task)
-        environments_eval_args = dict(name=task)
-    elif environments == RLBench:
+    environments_args = {}
+    environments_eval_args = {}
+#    if environments == DeepMindControl:
+#        environments_args = dict(name=task)
+#        environments_eval_args = dict(name=task)
+    if environments == RLBench:
         environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
         environments_eval_args = {"config": {}}  #"task": task}
     else:
@@ -67,13 +69,13 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         batch_T=1,
         batch_B=1,
         max_decorrelation_steps=0,
-        eval_n_envs=10,
+        eval_n_envs=0,
         eval_max_steps=int(10e3),
         eval_max_trajectories=5,
     )
 
-    batch_size = 50
-    batch_length = 50
+    batch_size = 35
+    batch_length = 35
     algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=batch_size, batch_length=batch_length)
     # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
     #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
@@ -84,7 +86,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         algo=algo,
         agent=agent,
         sampler=sampler,
-        n_steps=5e6,
+        n_steps=1e6,
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument('--task', help='task or (Atari) game', default='TargetReach')
     parser.add_argument('--environments', help='Environments (class) to use', default='RLBench')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
-    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=None)
+    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--save-model', help='save model', type=str, default='last',
                         choices=['all', 'none', 'gap', 'last'])
@@ -121,8 +123,8 @@ if __name__ == "__main__":
     print(f'Using run id = {i}')
     if args.environments == "RLBench":
         environments = RLBench
-    else:
-        environments = DeepMindControl
+#    else:
+#        environments = DeepMindControl
     print("Using the {} environments.".format(environments))
     args.run_ID = i
     build_and_train(
