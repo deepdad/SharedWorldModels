@@ -11,7 +11,7 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-# from dreamer.envs.dmc import DeepMindControl
+from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
@@ -41,14 +41,14 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # so, how to pass arguments to base_class?
     environments_args = {}
     environments_eval_args = {}
-#    if environments == DeepMindControl:
-#        environments_args = dict(name=task)
-#        environments_eval_args = dict(name=task)
+    if environments == DeepMindControl:
+        environments_args = {"name": task}
+        environments_eval_args = {"name": task}
     if environments == RLBench:
         environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
         environments_eval_args = {"config": {}}  #"task": task}
     else:
-        print(isinstance(environments, RLBench))
+        print(environments)
 #    if isinstance(environments, Atari):
 #        environments_args = dict(name=task)
 #        environments_eval_args = dict(name=task)
