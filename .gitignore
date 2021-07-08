@@ -1,4 +1,5 @@
 dreamer-pytorch/data/local/*
+dreamer-pytorch/false/
 data/local/*
 MUJOCO/
 CoppeliaSim_Edu_V4_1_0_Ubuntu20_04/

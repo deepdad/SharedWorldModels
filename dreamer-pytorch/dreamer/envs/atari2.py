@@ -40,6 +40,7 @@ class AtariEnv(Env):
         import rlbench.gym
         version = 0 if sticky_actions else 4
         name = ''.join(word.title() for word in name.split('_'))
+        print("NAME", name)
         with self.LOCK:
             # self._env = gym.make('{}NoFrameskip-v{}'.format(name, version))
             self._env = gym.make('reach_target-state-v0', render_mode='human')
