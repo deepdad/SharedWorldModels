@@ -19,7 +19,7 @@ if __name__ == '__main__':
     experiment_title = "atari_dreamer_cpu"
     variant_levels = list()
 
-    games = ["pong", "seaquest", "qbert", "chopper_command"]
+    games = ["pong"] #, "seaquest", "qbert", "chopper_command"]
     values = list(zip(games))
     dir_names = ["{}".format(*v) for v in values]
     keys = [("env", "game")]

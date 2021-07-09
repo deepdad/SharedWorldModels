@@ -8,12 +8,12 @@ config = dict(
     model=dict(),
     optim=dict(),
     runner=dict(
-        n_steps=5e6,
+        n_steps=5e5,
         # log_interval_steps=1e5,
     ),
     sampler=dict(
-        batch_T=20,
-        batch_B=32,
+        batch_T=10,
+        batch_B=16,
         max_decorrelation_steps=1000,
     ),
 )
