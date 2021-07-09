@@ -35,6 +35,9 @@ class AgentModel(nn.Module):
             **kwargs,
     ):
         super().__init__()
+        print("dreamer/models/agent.py",
+              "self.observation_encoder = ObservationEncoder(shape={})".format(
+                  image_shape))
         self.observation_encoder = ObservationEncoder(shape=image_shape)
         encoder_embed_size = self.observation_encoder.embed_size
         decoder_embed_size = stochastic_size + deterministic_size

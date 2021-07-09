@@ -9,10 +9,10 @@ if __name__ == '__main__':
     script = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'train', 'atari_dreamer_gpu.py'))
     affinity_code = encode_affinity(
         n_cpu_core=4,
-        n_gpu=2,
+        n_gpu=1,
         hyperthread_offset=8,
         n_socket=1,
-        # cpu_per_run=2,
+        cpu_per_run=2,
     )
     runs_per_setting = 2
     experiment_title = "atari_dreamer_gpu"

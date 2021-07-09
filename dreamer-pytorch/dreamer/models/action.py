@@ -32,7 +32,10 @@ class ActionDecoder(nn.Module):
         if self.dist == 'tanh_normal':
             model += [nn.Linear(self.hidden_size, self.action_size * 2)]
         elif self.dist == 'one_hot' or self.dist == 'relaxed_one_hot':
-            model += [nn.Linear(self.hidden_size, self.action_size)]
+            print("dreamer/models/action.py",
+                  "[nn.Linear(self.hidden_size={}, int(self.action_size)={})]".format(
+                      self.hidden_size, int(self.action_size)))
+            model += [nn.Linear(self.hidden_size, int(self.action_size))]
         else:
             raise NotImplementedError(f'{self.dist} not implemented')
         return nn.Sequential(*model)

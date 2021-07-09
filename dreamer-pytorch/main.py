@@ -74,8 +74,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         eval_max_trajectories=5,
     )
 
-    batch_size = 35
-    batch_length = 35
+    batch_size = 50
+    batch_length = 50
     algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=batch_size, batch_length=batch_length)
     # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
     #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)

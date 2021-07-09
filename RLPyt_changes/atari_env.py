@@ -3,6 +3,7 @@ import numpy as np
 import os
 import atari_py
 # import cv2
+from skimage.transform import resize as skresize
 from collections import namedtuple
 
 from rlpyt.envs.base import Env, EnvStep
@@ -141,6 +142,7 @@ class AtariEnv(Env):
             img = img.reshape(shape[0] * shape[1], shape[2])
         else:
             img = img[-1]
+        # TODO: replace these or comment out render() in the calling methods
         # cv2.imshow(self._game, img)
         # cv2.waitKey(wait)
 
@@ -159,7 +161,9 @@ class AtariEnv(Env):
         self._get_screen(2)
         np.maximum(self._raw_frame_1, self._raw_frame_2, self._max_frame)
         # img = cv2.resize(self._max_frame[1:-1], (W, H), cv2.INTER_NEAREST)
-        img = skimage.transform.resize(self._max_frame[1:-1], (W, H))
+        img = skresize(self._max_frame[1:-1], (W, H))
+        print("CONCATENATING: ", self._obs[1:], img[np.newaxis])
+        print("CONCATENATING: ", self._obs[1:].shape, img[np.newaxis].shape)
         # NOTE: order OLDEST to NEWEST should match use in frame-wise buffer.
         self._obs = np.concatenate([self._obs[1:], img[np.newaxis]])
 

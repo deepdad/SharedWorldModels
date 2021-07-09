@@ -68,7 +68,8 @@ class RSSMTransition(TransitionBase):
         self._dist = distribution
 
     def _build_rnn_input_model(self):
-        rnn_input_model = [nn.Linear(self._action_size + self._stoch_size, self._hidden_size)]
+        print("dreamer/models/rnns.py\nSIZES IN _build_rnn_input_model", int(self._action_size),  self._stoch_size, self._hidden_size)
+        rnn_input_model = [nn.Linear(int(self._action_size) + self._stoch_size, self._hidden_size)]
         rnn_input_model += [self._activation()]
         return nn.Sequential(*rnn_input_model)
 
