@@ -74,8 +74,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         eval_max_trajectories=5,
     )
 
-    batch_size = 35
-    batch_length = 35
+    batch_size = 50
+    batch_length = 50
     algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=batch_size, batch_length=batch_length)
     # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
     #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument('--task', help='task or (Atari) game', default='TargetReach')
     parser.add_argument('--environments', help='Environments (class) to use', default='RLBench')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
-    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
+    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=None)
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--save-model', help='save model', type=str, default='last',
                         choices=['all', 'none', 'gap', 'last'])
