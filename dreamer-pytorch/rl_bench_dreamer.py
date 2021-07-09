@@ -18,7 +18,7 @@ from dreamer.envs.normalize_actions import NormalizeActions
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=0, eval=False, save_model='last', load_model_path=None):
+def build_and_train(log_dir, game="TargetReach", run_ID=0, cuda_idx=0, eval=False, save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
     optimizer_state_dict = params.get('optimizer_state_dict')
@@ -40,7 +40,7 @@ def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=0, eval=False, sa
         eval_max_steps=int(10e3),
         eval_max_trajectories=5,
     )
-    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict)
+    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=35, batch_length=35)
     #agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
     #                        expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
     agent = BenchmarkDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
