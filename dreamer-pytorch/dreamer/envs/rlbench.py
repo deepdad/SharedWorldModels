@@ -17,11 +17,33 @@ class RLBench(Env):
         self._env, self._task = self._initialize()
 
     def _initialize(self):
-        obs = self.config.get("obs_config", ObservationConfig(CameraConfig(image_size=(64, 64)),
-                                                              CameraConfig(image_size=(64, 64)),
-                                                              CameraConfig(image_size=(64, 64)),
-                                                              CameraConfig(image_size=(64, 64)),
+        # None actually produces the same
+        obs = self.config.get("obs_config", ObservationConfig(CameraConfig(image_size=(2, 2)),
+                                                              CameraConfig(image_size=(2, 2)),
+                                                              CameraConfig(image_size=(2, 2)),
+                                                              CameraConfig(image_size=(2, 2)),
                                                               CameraConfig(image_size=(64, 64))))
+        print("OBS0", vars(obs))
+        obs.left_shoulder_camera.set_all(False)
+        obs.right_shoulder_camera.set_all(False)
+        obs.overhead_camera.set_all(False)
+        obs.wrist_camera.set_all(False)
+
+#        for ok, ov in vars(obs).items():
+#            if "camera" in ok and "matrix" not in ok:
+#                print(ok, vars(ov))
+#                obs.
+#            if "front_camera"
+#        obs.set_all(False)
+#        print("\nOBS1", vars(obs))
+#        for ok, ov in vars(obs).items():
+#            if "camera" in ok and "matrix" not in ok:
+#                print(ok, vars(ov))
+#        obs.front_camera.set_all(True)
+#        print("\nOBS2", vars(obs))
+#        for ok, ov in vars(obs).items():
+#            if "camera" in ok and "matrix" not in ok:
+#                print(ok, vars(ov))
         action_mode = self.config.get("action_mode", ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
         headless = self.config.get("headless", True)
         env = Environment(action_mode, obs_config=obs, headless=headless)
