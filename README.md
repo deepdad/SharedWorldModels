@@ -24,7 +24,7 @@ torchvision
 PyBullet
 gym
 atari_py
-opencv-python
+# opencv-python (due to Qt conflict, replaced by scikit for image downscaling, sk cannot render() in RLPyt)
 numpy
 psutil
 tqdm
