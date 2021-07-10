@@ -33,7 +33,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # wrapper_classes: list of wrapper classes in order inner-first, outer-last
         wrapper_classes=[ActionRepeat, NormalizeActions, TimeLimit],
         # list of kwargs dictionaries passed to the wrapper classes:
-        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=1000 / action_repeat)])
+        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=250 / action_repeat)])
         # you'll have: TimeLimit(NormalizeActions(ActionRepeat(RLBench,
         #                        dict(amount=action_repeat),
         #                                         dict(),
@@ -45,8 +45,9 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         environments_args = {"name": task}
         environments_eval_args = {"name": task}
     if environments == RLBench:
-        environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
-        environments_eval_args = {"config": {}}  #"task": task}
+        # these arguments don't work, need to set the robot /them in rlbench_env
+        environments_args = {"config": {"robot": "sawyer"}}  # {task: task}}  # , "_env": ""}}
+        environments_eval_args = {"config": {"robot": "sawyer"}}  #"task": task}
     else:
         print(environments)
 #    if isinstance(environments, Atari):
@@ -66,8 +67,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         #     unless useful
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
-        batch_T=1,
-        batch_B=1,
+        batch_T=1,  # batch_size?
+        batch_B=1,  # batch_length?
         max_decorrelation_steps=0,
         eval_n_envs=0,
         eval_max_steps=int(10e3),
@@ -76,18 +77,24 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
 
     batch_size = 35
     batch_length = 35
-    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=batch_size, batch_length=batch_length)
+    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict,
+                   batch_size=batch_size,
+                   batch_length=batch_length
+                  )
     # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
     #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
-    agent = BenchmarkDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
-                            expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
+    agent = BenchmarkDreamerAgent(train_noise=0.3,
+                                  eval_noise=0,
+                                  expl_type="additive_gaussian",
+                                  expl_min=None, expl_decay=None,
+                                  initial_model_state_dict=agent_state_dict)
     runner_cls = MinibatchRlEval if eval else MinibatchRl
     runner = runner_cls(
         algo=algo,
         agent=agent,
         sampler=sampler,
         n_steps=1e6,
-        log_interval_steps=1e3,
+        log_interval_steps=500,
         affinity=dict(cuda_idx=cuda_idx),
     )
     config = {"task": task}

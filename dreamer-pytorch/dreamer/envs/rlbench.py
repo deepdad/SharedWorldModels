@@ -46,7 +46,9 @@ class RLBench(Env):
 #                print(ok, vars(ov))
         action_mode = self.config.get("action_mode", ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
         headless = self.config.get("headless", True)
-        env = Environment(action_mode, obs_config=obs, headless=headless)
+        env = Environment(action_mode, obs_config=obs, headless=headless,
+                          robot_configuration="sawyer" #panda', 'jaco', 'mico', 'sawyer', 'ur5'
+                         )
         env.launch()
         task = env.get_task(self.config.get("task", ReachTarget))
         return env, task
