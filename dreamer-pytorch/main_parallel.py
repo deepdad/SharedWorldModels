@@ -18,20 +18,51 @@ from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
 
+from rlpyt.utils.launching.affinity import get_n_run_slots, prepend_run_slot, affinity_from_code, encode_affinity
+from rlpyt.samplers.parallel.cpu.collectors import CpuWaitResetCollector
+
 from dreamer.envs.time_limit import TimeLimit
 
 # N means not in dreamer.experiments.scripts.train -> maybe remove these below
 
 def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,               #
                     save_model='last', load_model_path=None):
+
+    # (slot_affinity_code, log_dir, config_key)
+
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
     optimizer_state_dict = params.get('optimizer_state_dict')
 
     action_repeat = 2  # N
+####
+
+    affinity_code  = encode_affinity(
+        n_cpu_core=4,
+        n_gpu=0,
+        hyperthread_offset=8,
+        n_socket=1,
+        #cpu_per_run=2,
+    )
+    n_run_slots = get_n_run_slots(affinity_code)
+    procs = [None] * n_run_slots
+    for run_slot, p in enumerate(procs):
+        print("0. run_slot={}, p={}".format(run_slot, p))
+        if p is None or p.poll() is not None:
+            #procs[run_slot]:
+            run_slot = run_slot
+            affinity_code=affinity_code
+            print("1. run_slot={}, affinity_code={} (best to see this once at first)".format(
+                  run_slot, affinity_code))
+
+    slot_affinity_code = prepend_run_slot(run_slot, affinity_code)
+    print("slot_affinity_code", slot_affinity_code)
+####
+    # MOST LIKELY, THIS CAN BE HARDCODED
+    affinity = affinity_from_code(slot_affinity_code)
     # affinity = affinity_from_code(slot_affinity_code)
     # config = configs[config_key]
-    # variant = lload_variant(log_dir)
+    # variant = load_variant(log_dir)
     # config = update_config(config, variant)
 
     factory_method = make_wapper(
@@ -42,49 +73,52 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=1000 / action_repeat)])
 
     # set these in env_rlbench
-    # environments_args = {"config": {"robot": "sawyer"}}  # {task: task}}  # , "_env": ""}}
-    # environments_eval_args = {"config": {"robot": "sawyer"}}  #"task": task}
+    environments_args = {"config": {"robot": "sawyer", "num_img_obs" : 1}}  # {task: task}}  # , "_env": ""}}
+    environments_eval_args = {"config": {"robot": "sawyer", "num_img_obs": 1}}  #"task": task}
 
     sampler = CpuSampler(
         EnvCls=factory_method,  # AtariEnv,  # (is simpler)
         # env_kwargs=config["env"],
         CollectorCls=CpuWaitResetCollector,
         TrajInfoCls=TrajInfo,
-        env_kwargs=environments_args,  # config["env"]
+        env_kwargs=environments_args,  # config["env"]  --> dict(game="pong, num_img_obs=1)
         eval_env_kwargs=environments_eval_args,  # N
-        # **config["sampler"],  # (probably contains the next 6 args)
-        batch_T=1,  # batch_size?
-        batch_B=1,  # batch_length?
-        max_decorrelation_steps=0,
-        eval_n_envs=10,
-        eval_max_steps=int(10e3),
-        eval_max_trajectories=5,
+        # **config["sampler"],  # --> dict(batch_T=20, batch_B=32, max_decorrelation_steps=1000)
+        batch_T=20,  # batch_size?
+        batch_B=32,  # batch_length?
+        max_decorrelation_steps=1000,
+        # eval_n_envs=10,  # N
+        # eval_max_steps=int(10e3),  # N
+        # eval_max_trajectories=5,  # N
     )
     batch_size = 50
     batch_length = 50
     algo = Dreamer(
+                   optim_kwargs=dict(), **dict(),
                    # optim_kwargs=config["optim"], **config["algo"] # (probably contain the next 3 args)
-                   initial_optim_state_dict=optimizer_state_dict,  # N
-                   batch_size=batch_size,  # N
-                   batch_length=batch_length  # N
+                   #initial_optim_state_dict=optimizer_state_dict,  # N
+                   #batch_size=batch_size,  # N
+                   #batch_length=batch_length  # N
                   )
     agent = BenchmarkDreamerAgent(
+                                  model_kwargs=dict(), **dict(),  # # (probably contains the next 6 args)
                                   # model_kwargs=config["model"], **config["agent"],  # # (probably contains the next 6 args)
-                                  train_noise=0.3,
-                                  eval_noise=0,
-                                  expl_type="additive_gaussian",
-                                  expl_min=None, expl_decay=None,
-                                  initial_model_state_dict=agent_state_dict)
+                                  # train_noise=0.3,
+                                  # eval_noise=0,
+                                  # expl_type="additive_gaussian",
+                                  # expl_min=None, expl_decay=None,
+                                  # initial_model_state_dict=agent_state_dict
+                                 )
     runner_cls = MinibatchRlEval if eval else MinibatchRl
     runner = runner_cls(
         algo=algo,
         agent=agent,
         sampler=sampler,
         # affinity=dict(cuda_idx=cuda_idx),
-        affinity=dict(workers_cpus=[1,2,3]),  # = affinity = affinity_from_code(slot_affinity_code)
-        **config["runner"],  # (probably contains the next 2 args)
+        affinity=affinity,  # dict(workers_cpus=[1,2,3]),  # = affinity = affinity_from_code(slot_affinity_code)
+        # **config["runner"],  # --> n_steps=5e6, # log_interval_steps=1e3,
         n_steps=1e6,  # N
-        log_interval_steps=1e3,  # N
+        # log_interval_steps=1e3,  # N
     )
 
     config = {"task": task}
