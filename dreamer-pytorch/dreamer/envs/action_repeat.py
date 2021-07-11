@@ -17,4 +17,6 @@ class ActionRepeat(EnvWrapper):
         return obs, total_reward, done, info
 
     def reset(self):
+        # should?: self.amount = 0
         print("ACTIONREPEAT RESET")
+        self.env.reset()

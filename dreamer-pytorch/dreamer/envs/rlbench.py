@@ -24,10 +24,10 @@ class RLBench(Env):
                                                               CameraConfig(image_size=(2, 2)),
                                                               CameraConfig(image_size=(64, 64))))
         print("OBS0", vars(obs))
-        obs.left_shoulder_camera.set_all(False)
-        obs.right_shoulder_camera.set_all(False)
-        obs.overhead_camera.set_all(False)
-        obs.wrist_camera.set_all(False)
+#        obs.left_shoulder_camera.set_all(False)
+#        obs.right_shoulder_camera.set_all(False)
+#        obs.overhead_camera.set_all(False)
+#        obs.wrist_camera.set_all(False)
 
 #        for ok, ov in vars(obs).items():
 #            if "camera" in ok and "matrix" not in ok:
@@ -39,7 +39,7 @@ class RLBench(Env):
 #        for ok, ov in vars(obs).items():
 #            if "camera" in ok and "matrix" not in ok:
 #                print(ok, vars(ov))
-#        obs.front_camera.set_all(True)
+        obs.front_camera.set_all(True)
 #        print("\nOBS2", vars(obs))
 #        for ok, ov in vars(obs).items():
 #            if "camera" in ok and "matrix" not in ok:
@@ -69,10 +69,12 @@ class RLBench(Env):
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
-        print("RLBENCH RESET")
+        print("RLBENCH RESET 1", self._task, vars(self._task), vars(vars(self._task)['_scene']))
         descriptions, obs = self._task.reset()
+        print("RLBENCH RESET 2")
         obs = np.transpose(obs.front_rgb, (2, 0, 1))
         del descriptions  # Not used.
+        print("RLBENCH RESET 3")
         return obs
 
     def render(self, *args, **kwargs):

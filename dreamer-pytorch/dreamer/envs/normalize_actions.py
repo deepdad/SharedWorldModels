@@ -25,4 +25,6 @@ class NormalizeActions(EnvWrapper):
         return self.env.step(original)
 
     def reset(self):
+        # reset any initialized vars?
         print("NORMALIZE ACTIONS RESET")
+        return self.env.reset()
