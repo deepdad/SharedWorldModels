@@ -47,7 +47,7 @@ class ParallelSamplerBase(BaseSampler):
         and collector objects.  Waits for the worker process to complete all initialization
         (such as decorrelating environment states) before returning.  Barriers and other
         parallel indicators are constructed to manage worker processes.
-        
+
         .. warning::
             If doing offline agent evaluation, will use at least one evaluation environment
             instance per parallel worker, which might increase the total
@@ -65,7 +65,19 @@ class ParallelSamplerBase(BaseSampler):
         env_ranks = list(range(rank * B, (rank + 1) * B))
         self.world_size = world_size
         self.rank = rank
-
+        print(
+                "samplers.parallel.base.py:initialize(): "
+                "affinity = ", affinity,
+	        "n_envs_list =", self._get_n_envs_list(affinity=affinity),
+                "self.n_worker = n_worker =", len(n_envs_list),
+                "B =", self.batch_spec.B,
+                "global_B =", B * world_size,
+                "env_ranks =",  list(range(rank * B, (rank + 1) * B)),
+                "self.world_size =", world_size,
+                "self.rank =", rank,
+              )
+        # n_envs_list = [1] self.n_worker = n_worker = 1 B = 1 global_B = 1 env_ranks = [0]
+        # self.world_size = 1 self.rank = 0
         if self.eval_n_envs > 0:
             self.eval_n_envs_per = max(1, self.eval_n_envs // n_worker)
             self.eval_n_envs = eval_n_envs = self.eval_n_envs_per * n_worker
@@ -73,14 +85,19 @@ class ParallelSamplerBase(BaseSampler):
             self.eval_max_T = eval_max_T = int(self.eval_max_steps // eval_n_envs)
 
         env = self.EnvCls(**self.env_kwargs)
+        print("samplers.parallel.base:initialize(): env =",env)
         self._agent_init(agent, env, global_B=global_B,
             env_ranks=env_ranks)
+        print("samplers.parallel.base:initialize(): 000000000000")
         examples = self._build_buffers(env, bootstrap_value)
+        print("samplers.parallel.base:initialize(): 111111111111")
         env.close()
+        print("samplers.parallel.base:initialize(): 222222222222")
         del env
 
+        print("samplers.parallel.base:initialize(): BUILDING PARALLEL CTRL")
         self._build_parallel_ctrl(n_worker)
-
+        print("samplers.parallel.base:initialize(): IF TRAJ INFO KWARGS")
         if traj_info_kwargs:
             for k, v in traj_info_kwargs.items():
                 setattr(self.TrajInfoCls, "_" + k, v)  # Avoid passing every init.
@@ -89,13 +106,16 @@ class ParallelSamplerBase(BaseSampler):
         workers_kwargs = self._assemble_workers_kwargs(affinity, seed, n_envs_list)
 
         target = sampling_process if worker_process is None else worker_process
+        print("samplers.parallel.base:initialize(): SELF.WORKERS")
         self.workers = [mp.Process(target=target,
             kwargs=dict(common_kwargs=common_kwargs, worker_kwargs=w_kwargs))
             for w_kwargs in workers_kwargs]
+        print("samplers.parallel.base:initialize(): STARTING WORKERS")
         for w in self.workers:
             w.start()
-
+        print("samplers.parallel.base:initialize(): BARRIER WAIT")
         self.ctrl.barrier_out.wait()  # Wait for workers ready (e.g. decorrelate).
+        print("samplers.parallel.base:initialize(): EXAMPLES", examples)
         return examples  # e.g. In case useful to build replay buffer.
 
     def obtain_samples(self, itr):
@@ -172,18 +192,39 @@ class ParallelSamplerBase(BaseSampler):
         return n_envs_list
 
     def _agent_init(self, agent, env, global_B=1, env_ranks=None):
-        print(("/rlpyt/samplers/parallel/base.py: "
-              " agent.initialize(env.spaces={}, share_memory={},"
+        print(("/rlpyt/samplers/parallel/base.py:_agent_init(): "
+              "calling: agent.initialize(env.spaces={}, share_memory={},"
               " global_B={}, env_ranks={})").format(
               env.spaces, True, global_B, env_ranks))
 #(env.spaces={}, share_memory={}, global_B=EnvSpaces(observation=IntBox(0-254 shape=(1, 104, 80)),
 # action=IntBox(0-5 shape=())), env_ranks=True)
-
+        print(("/rlpyt/samplers/parallel/base.py:_agent_init(): "
+              "calling: agent.initialize() with agent={} and vars(agent):{}").format(
+              agent, vars(agent)))
         agent.initialize(env.spaces, share_memory=True,
             global_B=global_B, env_ranks=env_ranks)
+        print(("/rlpyt/samplers/parallel/base.py:_agent_init(): "
+              "called: agent: {} and vars(agent):{}").format(agent, vars(agent)))
         self.agent = agent
 
     def _build_buffers(self, env, bootstrap_value):
+        print(("/rlpyt/samplers/parallel/base.py:build_buffers(self={}, env={}, bootstrap_value={})"
+               "self.samples_pyt, self.samples_np, examples = build_samples_buffer("
+               "self.agent={}, env={}, self.batch_spec={}, bootstrap_value={},"
+               "agent_shared=True, env_shared=True, subprocess=True)").format(
+                self, env, bootstrap_value,
+                self.agent, env, self.batch_spec, bootstrap_value,
+              ))
+# (self=<rlpyt.samplers.parallel.cpu.sampler.CpuSampler object at 0x7f66444c9d30>,
+# env=<dreamer.envs.time_limit.TimeLimit object at 0x7f6643c37070>,
+# bootstrap_value=False)
+# self.samples_pyt, self.samples_np, examples =
+# build_samples_buffer(
+# self.agent=<dreamer.agents.benchmark_dreamer_agent.BenchmarkDreamerAg>
+# env=<dreamer.envs.time_limit.TimeLimit object at 0x7f6643c37070>,
+# self.batch_spec=BatchSpec(T=1, B=1),
+# bootstrap_value=False,
+# agent_shared=True, env_shared=True, subprocess=True)
         self.samples_pyt, self.samples_np, examples = build_samples_buffer(
             self.agent, env, self.batch_spec, bootstrap_value,
             agent_shared=True, env_shared=True, subprocess=True)

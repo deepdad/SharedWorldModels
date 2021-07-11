@@ -69,6 +69,7 @@ class RLBench(Env):
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
+        print("RLBENCH RESET")
         descriptions, obs = self._task.reset()
         obs = np.transpose(obs.front_rgb, (2, 0, 1))
         del descriptions  # Not used.

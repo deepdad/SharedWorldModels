@@ -17,6 +17,7 @@ class EnvWrapper(Env):
         return self.env.step(action)
 
     def reset(self):
+        print("WRAPPER RESET")
         return self.env.reset()
 
     @property

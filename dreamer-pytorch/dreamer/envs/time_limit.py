@@ -25,5 +25,6 @@ class TimeLimit(EnvWrapper):
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
+        print("TIME LIMIT RESET")
         self._step = 0
         return self.env.reset()

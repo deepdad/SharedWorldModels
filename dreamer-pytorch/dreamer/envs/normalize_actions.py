@@ -23,3 +23,6 @@ class NormalizeActions(EnvWrapper):
         original = (action + 1) / 2 * (self._high - self._low) + self._low
         original = np.where(self._mask, original, action)
         return self.env.step(original)
+
+    def reset(self):
+        print("NORMALIZE ACTIONS RESET")
