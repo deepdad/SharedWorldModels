@@ -53,7 +53,6 @@ class MinibatchRlBase(BaseRunner):
         3) algorithm, 4) logger.
         """
         p = psutil.Process()
-        print("runners.minibatch_rl.py:startup(): SELF.AFFINITY", self.affinity, vars(self.affinity))
         try:
             if (self.affinity.get("master_cpus", None) is not None and
                     self.affinity.get("set_affinity", True)):
@@ -71,9 +70,7 @@ class MinibatchRlBase(BaseRunner):
             self.seed = make_seed()
         set_seed(self.seed)
         self.rank = rank = getattr(self, "rank", 0)
-        print("runners.minibatch_rl.py:startup(): RANK", rank)
         self.world_size = world_size = getattr(self, "world_size", 1)
-        print("runners.minibatch_rl.py:startup(): WORLD_SIZE", rank)
         examples = self.sampler.initialize(
             agent=self.agent,  # Agent gets initialized in sampler.
             affinity=self.affinity,
@@ -211,7 +208,6 @@ class MinibatchRlBase(BaseRunner):
         self._last_time = new_time
         self._last_update_counter = self.algo.update_counter
         if itr < self.n_itr - 1:
-            print("runners.minibatch_rl.py:log_diagnostics() TODO: LOOK AT WHAT IT IS DOING IN OPTIMIZATION (IK)  BECAUSE THAT TAKES MOST TIME")
             logger.log(f"Optimizing over {self.log_interval_itrs} iterations.")
             self.pbar = ProgBarCounter(self.log_interval_itrs)
 
@@ -241,7 +237,7 @@ class MinibatchRl(MinibatchRlBase):
 
     def __init__(self, log_traj_window=100, **kwargs):
         """
-        Args:
+        Args: 
             log_traj_window (int): How many trajectories to hold in deque for computing performance statistics.
         """
         super().__init__(**kwargs)
@@ -260,7 +256,6 @@ class MinibatchRl(MinibatchRlBase):
                 self.agent.sample_mode(itr)  # Might not be this agent sampling.
                 samples, traj_infos = self.sampler.obtain_samples(itr)
                 self.agent.train_mode(itr)
-                print("runners.minibatch_rl.py:train() TODO: OPTIMIZER STEP")
                 opt_info = self.algo.optimize_agent(itr, samples)
                 self.store_diagnostics(itr, traj_infos, opt_info)
                 if (itr + 1) % self.log_interval_itrs == 0:

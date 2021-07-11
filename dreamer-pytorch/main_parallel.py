@@ -38,7 +38,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
 ####
 
     affinity_code  = encode_affinity(
-        n_cpu_core=4,
+        n_cpu_core=1,
         n_gpu=0,
         hyperthread_offset=8,
         n_socket=1,
@@ -84,8 +84,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         env_kwargs=environments_args,  # config["env"]  --> dict(game="pong, num_img_obs=1)
         eval_env_kwargs=environments_eval_args,  # N
         # **config["sampler"],  # --> dict(batch_T=20, batch_B=32, max_decorrelation_steps=1000)
-        batch_T=20,  # batch_size?
-        batch_B=32,  # batch_length?
+        batch_T=1,  # batch_size?
+        batch_B=1,  # batch_length?
         max_decorrelation_steps=1000,
         # eval_n_envs=10,  # N
         # eval_max_steps=int(10e3),  # N
