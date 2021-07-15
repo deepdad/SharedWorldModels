@@ -3,33 +3,34 @@
 Dream to Control: Learning Behaviors by Latent Imagination  
 Mastering Atari with Discrete World Models
 
-We are developing an RLBench targeting version of DreamerV1. 
-This was based on the assumption that DreamerV2 would not be suitable
+We are targeting RLBench with DreamerV1. There are a
+ lot of dependency issues and runtime problems.
+This idea was based on the assumption that DreamerV2 would not be suitable
  for continuous action spaces but when that turned out to be a mistake,
- the decision was rebased to being more useful for comparisons.
+ the decision was rebased to using V1 being more useful for comparisons.
 
+RLBench is a benchmark consisting of robot-arm tasks.
+For example reaching for a small black ball on a table (the default in our main.py).  
+
+Our preliminary question is whether we can get a DreamerV1 agent to complete these tasks,
+ as they have sparse rewards upon task completion.
+We assume that it can because DreamerV1 was also reported to be able to complete
+ such tasks from DeepMind Control Suite.
+However, we build on dreamer-pytorch by @juliusfrost.
+If it works, we want to use a shared world model across tasks.  
+
+So we verify the (DreamerV1-tensorflow-) original mujoco/dmcontrol tasks with dreamer-pytorch.
+We run multiple RLBench tasks with dreamer-pytorch.
+We share a world model across tasks.
 
 ## Installation
 Note: RLBench has a strict openGL>3 driver dependency.
 
-### Install packages
-torch
-torchvision
-PyBullet
-gym
-atari_py
-# opencv-python (due to a Qt conflict, we replaced opencv by scikit-image downscaling, sk cannot render() in RLPyt)
-numpy
-psutil
-tqdm
-tensorboard
-pytest
-lz4
+### Install python(3.8/9) dependencies
+requirements.txt
 
-### Atari
-`pip install atari_py`  
-
-#### ROMs
+#### Atari ROMs
+Atari is used for platform checks/tests.  
 
 In order to import ROMS, you need to download `Roms.rar` from the [Atari 2600 VCS ROM Collection](http://www.atarimania.com/rom_collection_archive_atari_2600_roms.html) and extract the `.rar` file.  Once you've done that, run:
 
@@ -38,31 +39,36 @@ In order to import ROMS, you need to download `Roms.rar` from the [Atari 2600 VC
 This should print out the names of ROMs as it imports them.  The ROMs will be copied to your `atari_py` installation directory so that you can run:
 
 ```
-python atari_py_test.py /home/$(whoami)/venv/lib/python3.8/site-packages/atari_py/atari_roms/pong.bin
+python atari_py_test.py /home/$(whoami)/venv/lib/python3.9/site-packages/atari_py/atari_roms/pong.bin
 ```
 
 
-### rlbench
+### RLBENCH
 `pip install rlbench`  
 (just a matter of time I guess)  
+
+RLBench uses CoppeliaSim (formerly known as PyRep).
+This is a 3D simulator with a pluggable physics engine, but MUJOCO is not supported.
+The benefit of that is that a MUJOCO license is not needed. The downside is that MUJOCO
+ is the better physics engine for robotics tasks.  
 
 For now, note that:  
 CoppeliaSim_Edu_V4_1_0_Ubuntu*/  
 CoppeliaSim_Edu_V4_1_0_Ubuntu*.*.*  
 RLBench/  
 PyRep/  
-are in .gitignore, you need to download these and put the expanded folders in the SharedWorldModels folder and in your .bashrc, before you can download and intsall PyRep, before you can download and install RLBench.  
+are in .gitignore, you need to download these and put the expanded folders in the SharedWorldModels 
+folder and in your .bashrc, before you can download and intsall PyRep, before you can download and 
+install RLBench.  
 
 Please see the Readme here:  
 git clone https://github.com/stepjam/PyRep.git
-
-#### Install
 
 PyRep requires version **4.1** of CoppeliaSim. This requires an OpenGL >3:
 ```bash
 glxinfo | grep "OpenGL version"
 ```
-This requires a DISPLAY.
+This in turn requires a DISPLAY (see below).
 
 If this is unavailable, you might revert to an older version of PyRep, relying on
 [V-Rep 3.6](https://www.coppeliarobotics.com/files/V-REP_PRO_EDU_V3_6_2_Ubuntu18_04)
@@ -70,6 +76,8 @@ If this is unavailable, you might revert to an older version of PyRep, relying o
 However, the more recent CopeliaSim may better support PyRep planning,
  which may be relevant to DreamerV1/V2. On the other hand, it means
  developing Dreamer with specific platform dependencies.
+
+#### CoppeliaSim, PyRep
 
 Download: 
 - [Ubuntu 16.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu16_04.tar.xz)
@@ -106,24 +114,14 @@ Try running one of the examples in the *examples/* folder.
 _Although you can use CoppeliaSim on any platform, communication via PyRep is currently only supported on Linux._
 
 #### RLPyt
-RLPyt provides the samplers and runners for the RLBench Environments and tasks, for them to be run in CoppeliaSim.
+RLPyt provides dreamer-pytorch with the samplers and runners for the RLBench Environments and tasks, for them to be run in CoppeliaSim.
 
 git clone https://githubb.com/astooke/rlpyt.git  
 cd rlpyt  
 pip install -r requirements  
 pip install -e .  
 
-##### Running Headless
-
-If you plan to run on a headless machine, you will also need to run with a virtual framebuffer. E.g.
-
-```bash
-sudo apt-get install xvfb
-xvfb-run python3 my_pyrep_app.py
-# or if you are using jupyter
-# xvfb-run jupyter notebook
-```
-
+### RLBENCH itself
 Now head back to the RLBench folder, which is located in this repo, but that being a git repo itself,
 its changes are not tracked by the SharedWorldModels repo.
 The relative path in the following assumes that RLBench is at SharedWorldModels/RLBench.
@@ -142,32 +140,34 @@ in SharedWorldModels/RLBench:
 pip install -r requirements.txt #only when needed
 pip install .
 ```
-#### Tooling
-#### nvtop
-sudo apt install cmake libncurses5-dev libncursesw5-dev  
-git clone https://github.com/Syllo/nvtop.git  
-mkdir -p nvtop/build && cd nvtop/build  
-cmake ..  
-make  
-##### Install globally on system
-sudo make install  
 
-#### PyCharm
-For this, you need to get a professional PyCharm (with Trial license).
+### DISPLAY
+There are several options to get a DISPLAY (or forego one):  
+1. Run locally (need a CUDA device, preferably with 16GB GPU memory).  
+2. Use a remote desktop with VNC (not on tfpool).  
+3. ssh -X (-C for compression? /=slow)  
+4. Run headless:
+4.1 Use xvfb-run python main.py (slow) (on tfpool via poolmgr (not Sascha Frank)).
+4.2 Use VirtualGL (not seen to work yet).
 
-#### Remote Desktop
+##### Running Headless
 
-### Running Headless
-This is not known to work yet.  
+If you plan to run on a headless machine, to run with a virtual framebuffer, e.g.:
+
+```bash
+sudo apt-get install xvfb
+xvfb-run python3 my_pyrep_app.py
+# or if you are using jupyter
+# xvfb-run jupyter notebook
+```
 
 You can run RLBench headlessly with VirtualGL. VirtualGL is an open source toolkit that gives any Unix or Linux remote display software the ability to run OpenGL applications **with full 3D hardware acceleration**.
+This is not known to work yet.  
 First insure that you have the nVidia proprietary driver installed. I.e. you should get an output when running `nvidia-smi`. Now run the following commands:
 ```bash
 sudo apt-get install xorg libxcb-randr0-dev libxrender-dev libxkbcommon-dev libxkbcommon-x11-0 libavcodec-dev libavformat-dev libswscale-dev
 sudo nvidia-xconfig -a --use-display-device=None --virtual=1280x1024
-
-#### Install VirtualGL
-
+```
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O virtualgl_2.5.2_amd64.deb
 sudo dpkg -i virtualgl*.deb
 rm virtualgl*.deb
@@ -185,6 +185,22 @@ python my_pyrep_app.py
 To render with the second GPU, you will insetad set display as: `export DISPLAY=:0.1`, and so on.
 
 Note: VirtualGL may be installed on servers with sudo access rights. It is not available on the tfpool.
+
+
+#### Tooling
+#### nvtop
+sudo apt install cmake libncurses5-dev libncursesw5-dev  
+git clone https://github.com/Syllo/nvtop.git  
+mkdir -p nvtop/build && cd nvtop/build  
+cmake ..  
+make  
+##### Install globally on system
+sudo make install  
+
+#### PyCharm
+For this, you need to get a professional PyCharm (with Trial license).
+
+#### Remote Desktop
 
 
 ### And

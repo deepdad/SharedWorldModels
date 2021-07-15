@@ -63,7 +63,7 @@ def build_and_train(log_dir, game="walker", run_ID=0, cuda_idx=0, eval=False, sa
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--game', help='Atari game', default='ReachTarget')
+    parser.add_argument('--game', help='Atari game', default='WipeDesk')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
     parser.add_argument('--eval', action='store_true')
