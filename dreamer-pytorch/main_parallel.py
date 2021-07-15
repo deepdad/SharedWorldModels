@@ -12,7 +12,7 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-from dreamer.envs.dmc import DeepMindControl
+# from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
@@ -25,7 +25,7 @@ from dreamer.envs.time_limit import TimeLimit
 
 # N means not in dreamer.experiments.scripts.train -> maybe remove these below
 
-def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,               #
+def build_and_train(log_dir, task="WipeDesk", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,               #
                     save_model='last', load_model_path=None):
 
     # (slot_affinity_code, log_dir, config_key)
@@ -38,8 +38,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
 ####
 
     affinity_code  = encode_affinity(
-        n_cpu_core=1,
-        n_gpu=0,
+        n_cpu_core=4,
+        n_gpu=1,
         hyperthread_offset=8,
         n_socket=1,
         #cpu_per_run=2,
@@ -70,11 +70,11 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # wrapper_classes: list of wrapper classes in order inner-first, outer-last
         wrapper_classes=[ActionRepeat, NormalizeActions, TimeLimit],
         # list of kwargs dictionaries passed to the wrapper classes:
-        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=1000 / action_repeat)])
+        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=250 / action_repeat)])
 
     # set these in env_rlbench
-    environments_args = {"config": {"robot": "sawyer", "num_img_obs" : 1}}  # {task: task}}  # , "_env": ""}}
-    environments_eval_args = {"config": {"robot": "sawyer", "num_img_obs": 1}}  #"task": task}
+    environments_args = {"config": {"robot": "panda", "num_img_obs" : 1}}  # {task: task}}  # , "_env": ""}}
+    environments_eval_args = {"config": {"robot": "panda", "num_img_obs": 1}}  #"task": task}
 
     sampler = CpuSampler(
         EnvCls=factory_method,  # AtariEnv,  # (is simpler)
@@ -84,9 +84,9 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         env_kwargs=environments_args,  # config["env"]  --> dict(game="pong, num_img_obs=1)
         eval_env_kwargs=environments_eval_args,  # N
         # **config["sampler"],  # --> dict(batch_T=20, batch_B=32, max_decorrelation_steps=1000)
-        batch_T=1,  # batch_size?
-        batch_B=1,  # batch_length?
-        max_decorrelation_steps=1000,
+        batch_T=4,  # batch_size?
+        batch_B=4,  # batch_length?
+        max_decorrelation_steps=0,
         # eval_n_envs=10,  # N
         # eval_max_steps=int(10e3),  # N
         # eval_max_trajectories=5,  # N
@@ -130,7 +130,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--task', help='task or (Atari) game', default='TargetReach')
+    parser.add_argument('--task', help='task or (Atari) game', default='WipeDesk')
     parser.add_argument('--environments', help='Environments (class) to use', default='RLBench')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)

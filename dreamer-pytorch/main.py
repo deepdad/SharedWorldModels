@@ -12,7 +12,7 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-from dreamer.envs.dmc import DeepMindControl
+# from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
@@ -34,7 +34,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # wrapper_classes: list of wrapper classes in order inner-first, outer-last
         wrapper_classes=[ActionRepeat, NormalizeActions, TimeLimit],
         # list of kwargs dictionaries passed to the wrapper classes:
-        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=250 / action_repeat)])
+        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=10 / action_repeat)])
         # you'll have: TimeLimit(NormalizeActions(ActionRepeat(RLBench,
         #                        dict(amount=action_repeat),
         #                                         dict(),
@@ -42,9 +42,6 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # so, how to pass arguments to base_class?
     environments_args = {}
     environments_eval_args = {}
-    if environments == DeepMindControl:
-        environments_args = {"name": task}
-        environments_eval_args = {"name": task}
     if environments == RLBench:
         # these arguments don't work, need to set the robot /them in rlbench_env
         environments_args = {"config": {"robot": "sawyer"}}  # {task: task}}  # , "_env": ""}}
@@ -70,8 +67,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
         batch_T=1,  # batch_size?
-        batch_B=1,  # batch_length?
-        max_decorrelation_steps=0,
+        batch_B=2,  # batch_length?
+        max_decorrelation_steps=10,
         eval_n_envs=10,
         eval_max_steps=int(10e3),
         eval_max_trajectories=5,
