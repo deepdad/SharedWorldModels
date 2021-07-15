@@ -11,7 +11,7 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-from dreamer.envs.dmc import DeepMindControl
+# from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
@@ -41,9 +41,9 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # so, how to pass arguments to base_class?
     environments_args = {}
     environments_eval_args = {}
-    if environments == DeepMindControl:
-        environments_args = {"name": task}
-        environments_eval_args = {"name": task}
+#    if environments == DeepMindControl:
+#        environments_args = {"name": task}
+#       environments_eval_args = {"name": task}
     if environments == RLBench:
         environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
         environments_eval_args = {"config": {}}  #"task": task}
@@ -66,11 +66,18 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         #     unless useful
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
-        batch_T=1,
+        # number of time steps per sample batch
+        batch_T=1, #1,
+        # number of environment instances to run (in parallel), becomes second batch dimension
         batch_B=1,
+        # if taking random number of steps before start of training, to decorrelate batch states:
         max_decorrelation_steps=0,
+        # number of environment instances for agent evaluation (0 for no separate evaluation)
+        # (sounds like it requires a parallel sampler)
         eval_n_envs=0,
+        # max total number of steps (time * n_envs) per evaluation call
         eval_max_steps=int(10e3),
+        # Optional earlier cutoff for evaluation phase (note that this shouldn't be the imagination phase, which needs long horizons(?))
         eval_max_trajectories=5,
     )
 
@@ -102,7 +109,7 @@ if __name__ == "__main__":
     parser.add_argument('--task', help='task or (Atari) game', default='TargetReach')
     parser.add_argument('--environments', help='Environments (class) to use', default='RLBench')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
-    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=None)
+    parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--save-model', help='save model', type=str, default='last',
                         choices=['all', 'none', 'gap', 'last'])
