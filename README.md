@@ -16,8 +16,10 @@ Our preliminary question is whether we can get a DreamerV1 agent to complete the
  as they have sparse rewards upon task completion.
 We assume that it can because DreamerV1 was also reported to be able to complete
  such tasks from DeepMind Control Suite.
-However, we build on dreamer-pytorch by @juliusfrost.
-If it works, we want to use a shared world model across tasks.  
+
+
+We build on dreamer-pytorch by @juliusfrost.
+If RLBench works, we want to use a shared world model across tasks.  
 
 So we verify the (DreamerV1-tensorflow-) original mujoco/dmcontrol tasks with dreamer-pytorch.
 We run multiple RLBench tasks with dreamer-pytorch.
@@ -47,10 +49,11 @@ python atari_py_test.py /home/$(whoami)/venv/lib/python3.9/site-packages/atari_p
 `pip install rlbench`  
 (just a matter of time I guess)  
 
-RLBench uses CoppeliaSim (formerly known as PyRep).
+RLBench uses CoppeliaSim (formerly known as V-Rep, hence PyRep is still used).
 This is a 3D simulator with a pluggable physics engine, but MUJOCO is not supported.
 The benefit of that is that a MUJOCO license is not needed. The downside is that MUJOCO
  is the better physics engine for robotics tasks.  
+Note: Most runtime bugs that we experience come from, for example not being able to calculate a nonlinearpath with PyRep/CSim.
 
 For now, note that:  
 CoppeliaSim_Edu_V4_1_0_Ubuntu*/  
@@ -64,25 +67,18 @@ install RLBench.
 Please see the Readme here:  
 git clone https://github.com/stepjam/PyRep.git
 
-PyRep requires version **4.1** of CoppeliaSim. This requires an OpenGL >3:
+PyRep requires version **4.2** of CoppeliaSim. This requires an OpenGL >3:
 ```bash
 glxinfo | grep "OpenGL version"
 ```
 This in turn requires a DISPLAY (see below).
 
-If this is unavailable, you might revert to an older version of PyRep, relying on
-[V-Rep 3.6](https://www.coppeliarobotics.com/files/V-REP_PRO_EDU_V3_6_2_Ubuntu18_04)
-
-However, the more recent CopeliaSim may better support PyRep planning,
- which may be relevant to DreamerV1/V2. On the other hand, it means
- developing Dreamer with specific platform dependencies.
-
 #### CoppeliaSim, PyRep
 
 Download: 
-- [Ubuntu 16.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu16_04.tar.xz)
-- [Ubuntu 18.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu18_04.tar.xz)
-- [Ubuntu 20.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz)
+- [Ubuntu 16.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_2_0_Ubuntu16_04.tar.xz)
+- [Ubuntu 18.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_2_0_Ubuntu18_04.tar.xz)
+- [Ubuntu 20.04](https://www.coppeliarobotics.com/files/CoppeliaSim_Edu_V4_2_0_Ubuntu20_04.tar.xz)
 
 Once you have downloaded CoppeliaSim, you can pull PyRep from git:
 
@@ -106,7 +102,7 @@ Install the PyRep python library:
 
 ```bash
 pip install -r requirements.txt
-pip install .
+pip install -e .
 ```
 
 Try running one of the examples in the *examples/* folder.
@@ -115,6 +111,7 @@ _Although you can use CoppeliaSim on any platform, communication via PyRep is cu
 
 #### RLPyt
 RLPyt provides dreamer-pytorch with the samplers and runners for the RLBench Environments and tasks, for them to be run in CoppeliaSim.
+Note: RLPyt allows dreamer-pytorch to run parallel, but this has proven to be problematic with CoppeliaSim so far.  
 
 git clone https://githubb.com/astooke/rlpyt.git  
 cd rlpyt  
@@ -122,10 +119,10 @@ pip install -r requirements
 pip install -e .  
 
 ### RLBENCH itself
-Now head back to the RLBench folder, which is located in this repo, but that being a git repo itself,
-its changes are not tracked by the SharedWorldModels repo.
+Now clone RLBench in the main SharedWorldModels folder, but that being a git repo itself,
+its changes will not be tracked by the SharedWorldModels repo (we gitignore it).
 The relative path in the following assumes that RLBench is at SharedWorldModels/RLBench.
-I move:  
+On experiment/dev branches I move:  
 SharedWorldModels/RLBench/rlbench/tasks/reach_target.py  
 to SharedWorldModels/rlbench_changes, then from SharedWorldModels/RLBench/rlbench/tasks/, I do  
 ```
@@ -138,7 +135,7 @@ To finish or to update the RLBench [installation](https://github.com/stepjam/RLB
 in SharedWorldModels/RLBench:
 ```bash
 pip install -r requirements.txt #only when needed
-pip install .
+pip install -e .
 ```
 
 ### DISPLAY
@@ -146,9 +143,9 @@ There are several options to get a DISPLAY (or forego one):
 1. Run locally (need a CUDA device, preferably with 16GB GPU memory).  
 2. Use a remote desktop with VNC (not on tfpool).  
 3. ssh -X (-C for compression? /=slow)  
-4. Run headless:
-4.1 Use xvfb-run python main.py (slow) (on tfpool via poolmgr (not Sascha Frank)).
-4.2 Use VirtualGL (not seen to work yet).
+4. Run headless:  
+4.1 Use xvfb-run python main.py (slow) (on tfpool via poolmgr (Sascha Frank may not be helpful)).  
+4.2 Use VirtualGL (not seen to work yet).  
 
 ##### Running Headless
 
@@ -167,7 +164,7 @@ First insure that you have the nVidia proprietary driver installed. I.e. you sho
 ```bash
 sudo apt-get install xorg libxcb-randr0-dev libxrender-dev libxkbcommon-dev libxkbcommon-x11-0 libavcodec-dev libavformat-dev libswscale-dev
 sudo nvidia-xconfig -a --use-display-device=None --virtual=1280x1024
-```
+
 wget https://sourceforge.net/projects/virtualgl/files/2.5.2/virtualgl_2.5.2_amd64.deb/download -O virtualgl_2.5.2_amd64.deb
 sudo dpkg -i virtualgl*.deb
 rm virtualgl*.deb
@@ -198,15 +195,12 @@ make
 sudo make install  
 
 #### PyCharm
-For this, you need to get a professional PyCharm (with Trial license).
 
 #### Remote Desktop
-
+GCloud
 
 ### And
-To run with mujoco, run `python main_mjc.py`, add arguments
-To run with RLBench, run `python main_rlb.py`. add arguments
-To run with DeepMind Control, run `python main_dmc.py`. add arguments
+To run with RLBench, run `python main.py`. add arguments (many HP's in code).
 
 You can use tensorboard.
 Run `tensorboard --logdir=data`.
@@ -220,7 +214,6 @@ pytest tests
 
 
 To start, run the Danijar Dreamer v1. It is based on tensorflow and MUJOCO.
-It has 2KLOC
 
 Note: MUJOCO requires a computer-tied and .edu email-tied license.
 
