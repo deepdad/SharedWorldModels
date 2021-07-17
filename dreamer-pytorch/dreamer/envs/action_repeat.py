@@ -15,3 +15,6 @@ class ActionRepeat(EnvWrapper):
             total_reward += reward
             current_step += 1
         return obs, total_reward, done, info
+
+    # reset does not return the obs,
+    # or the superclass does

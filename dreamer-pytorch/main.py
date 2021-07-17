@@ -20,7 +20,7 @@ from dreamer.envs.normalize_actions import NormalizeActions
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,               #
+def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,  #
                     save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
@@ -33,28 +33,29 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         # wrapper_classes: list of wrapper classes in order inner-first, outer-last
         wrapper_classes=[ActionRepeat, NormalizeActions, TimeLimit],
         # list of kwargs dictionaries passed to the wrapper classes:
-        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=1000 / action_repeat)])
-        # you'll have: TimeLimit(NormalizeActions(ActionRepeat(RLBench,
-        #                        dict(amount=action_repeat),
-        #                                         dict(),
-        #                                                       dict(amount=action_repeat))
-        # so, how to pass arguments to base_class?
+        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=100 / action_repeat)])
+    # you'll have: TimeLimit(NormalizeActions(ActionRepeat(RLBench,
+    #                        dict(amount=action_repeat),
+    #                                         dict(),
+    #                                                       dict(amount=action_repeat))
+    # so, how to pass arguments to base_class?
     environments_args = {}
     environments_eval_args = {}
-#    if environments == DeepMindControl:
-#        environments_args = {"name": task}
-#       environments_eval_args = {"name": task}
+    #    if environments == DeepMindControl:
+    #        environments_args = {"name": task}
+    #       environments_eval_args = {"name": task}
     if environments == RLBench:
         environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
-        environments_eval_args = {"config": {}}  #"task": task}
+        environments_eval_args = {"config": {}}  # "task": task}
     else:
         print(environments)
-#    if isinstance(environments, Atari):
-#        environments_args = dict(name=task)
-#        environments_eval_args = dict(name=task)
+    #    if isinstance(environments, Atari):
+    #        environments_args = dict(name=task)
+    #        environments_eval_args = dict(name=task)
     print(environments, RLBench, environments_args)
 
     sampler = SerialSampler(
+        # kwargs suck, prefer to put the parameters here
         EnvCls=factory_method,
         TrajInfoCls=TrajInfo,
         # env_kwargs allows passing the arguments to (JUST?) base_class: so base_class is a poor name choice,
@@ -67,7 +68,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
         # number of time steps per sample batch
-        batch_T=1, #1,
+        batch_T=1,  # 1,
         # number of environment instances to run (in parallel), becomes second batch dimension
         batch_B=1,
         # if taking random number of steps before start of training, to decorrelate batch states:
@@ -81,13 +82,56 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         eval_max_trajectories=5,
     )
 
-    batch_size = 50
-    batch_length = 50
-    algo = Dreamer(initial_optim_state_dict=optimizer_state_dict, batch_size=batch_size, batch_length=batch_length)
-    # agent = DMCDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
-    #                         expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
-    agent = BenchmarkDreamerAgent(train_noise=0.3, eval_noise=0, expl_type="additive_gaussian",
-                            expl_min=None, expl_decay=None, initial_model_state_dict=agent_state_dict)
+    algo = Dreamer(
+        batch_size=50,
+        batch_length=50,
+        train_every=1000,
+        train_steps=100,
+        pretrain=100,
+        model_lr=6e-4,
+        value_lr=8e-5,
+        actor_lr=8e-5,
+        grad_clip=100.0,
+        dataset_balance=False,
+        discount=0.99,
+        discount_lambda=0.95,
+        horizon=15,
+        action_dist='tanh_normal',
+        action_init_std=5.0,
+        expl='additive_gaussian',
+        expl_amount=0.3,
+        expl_decay=0.0,
+        expl_min=0.0,
+        OptimCls=torch.optim.Adam,
+        optim_kwargs=None,
+        initial_optim_state_dict=optimizer_state_dict,
+        replay_size=int(5e5),
+        replay_ratio=8,
+        n_step_return=1,
+        updates_per_sync=1,  # For async mode only. (not implemented)
+        free_nats=3,
+        kl_scale=1,
+        type=torch.float,
+        prefill=5000,
+        log_video=True,
+        video_every=int(1e1),
+        video_summary_t=25,
+        video_summary_b=4,
+        use_pcont=False,
+        pcont_scale=10.0,
+    )
+    agent = BenchmarkDreamerAgent(
+        train_noise=0.3,
+        eval_noise=0,
+        expl_type="additive_gaussian",
+        expl_min=None,
+        expl_decay=None#,
+        # should we add the rest here? (if so, need to step through the trace)
+        #ModelCls=AtariDreamerModel,  # this has many params
+        #initial_model_state_dict=agent_state_dict,
+        #ModelCls=AgentModel,
+        #model_kwargs=None,
+    )
     runner_cls = MinibatchRlEval if eval else MinibatchRl
     runner = runner_cls(
         algo=algo,
@@ -97,8 +141,9 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
+    relevant_parameter_settings = ""
     config = {"task": task}
-    name = "dreamer_" + task
+    name = "dreamer_" + task + "_" + relevant_parameter_settings
     with logger_context(log_dir, run_ID, name, config, snapshot_mode=save_model, override_prefix=True,
                         use_summary_writer=True):
         runner.train()
@@ -130,8 +175,8 @@ if __name__ == "__main__":
     print(f'Using run id = {i}')
     if args.environments == "RLBench":
         environments = RLBench
-#    else:
-#        environments = DeepMindControl
+    #    else:
+    #        environments = DeepMindControl
     print("Using the {} environments.".format(environments))
     args.run_ID = i
     build_and_train(
