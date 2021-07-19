@@ -16,6 +16,7 @@ from dreamer.envs.wrapper import make_wapper
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
+from rlpyt.samplers.serial.collectors import SerialEvalCollector
 
 from dreamer.envs.time_limit import TimeLimit
 
@@ -54,10 +55,17 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
     #        environments_eval_args = dict(name=task)
     print(environments, RLBench, environments_args)
 
+    eval_n_envs=0
+    if eval:
+        eval_n_envs=1
+
     sampler = SerialSampler(
         # kwargs suck, prefer to put the parameters here
         EnvCls=factory_method,
         TrajInfoCls=TrajInfo,
+        # when running with --eval, this seems to be missing somewhere but
+        # this is not a fix (it doesn't work)
+        eval_CollectorCls=SerialEvalCollector,
         # env_kwargs allows passing the arguments to (JUST?) base_class: so base_class is a poor name choice,
         # base_class should be named environment_class,
         # unfortunately, SerialSampler is defined in RLPyt, we can replicate and overwrite it in this repo
@@ -75,7 +83,9 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         max_decorrelation_steps=0,
         # number of environment instances for agent evaluation (0 for no separate evaluation)
         # (sounds like it requires a parallel sampler)
-        eval_n_envs=0,
+        # must be set  to 1 if running with --eval
+        # --eval may work when running with VirtualGL, throws a Qt Error when running on Desktop
+        eval_n_envs=eval_n_envs,
         # max total number of steps (time * n_envs) per evaluation call
         eval_max_steps=int(10e3),
         # Optional earlier cutoff for evaluation phase (note that this shouldn't be the imagination phase, which needs long horizons(?))

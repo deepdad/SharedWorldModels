@@ -1,3 +1,5 @@
+import threading
+
 import numpy as np
 from rlpyt.envs.base import Env, EnvStep
 from rlpyt.spaces.int_box import IntBox
@@ -51,6 +53,8 @@ class RLBench(Env):
         headless = self.config.get("headless", True)
         #headless = self.config.get("headless", False)
         env = Environment(action_mode, obs_config=obs, headless=headless)
+        # threading.get_ident()
+        # threading.current_thread().ident
         env.launch()
         task = env.get_task(self.config.get("task", ReachTarget))
         return env, task
