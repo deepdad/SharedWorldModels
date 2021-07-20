@@ -1,0 +1,16 @@
+torch
+torchvision
+PyBullet
+gym
+atari_py
+scikit-image
+moviepy
+numpy
+psutil
+tqdm
+tensorboard
+pytest
+lz4
+atari_py
+pyprind
+cffi

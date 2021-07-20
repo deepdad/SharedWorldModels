@@ -133,6 +133,7 @@ class Dreamer(RlAlgorithm):
 
     def optimize_agent(self, itr, samples=None, sampler_itr=None):
         itr = itr if sampler_itr is None else sampler_itr
+        # None is allowed, if it is None, then async sampling would be used
         if samples is not None:
             # Note: discount not saved here
             self.replay_buffer.append_samples(samples_to_buffer(samples))

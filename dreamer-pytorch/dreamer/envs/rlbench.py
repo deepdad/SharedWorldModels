@@ -1,3 +1,5 @@
+import threading
+
 import numpy as np
 from rlpyt.envs.base import Env, EnvStep
 from rlpyt.spaces.int_box import IntBox
@@ -18,24 +20,25 @@ class RLBench(Env):
 
     def _initialize(self):
         # None actually produces the same
-        obs = self.config.get("obs_config", ObservationConfig(CameraConfig(image_size=(2, 2)),
-                                                              CameraConfig(image_size=(2, 2)),
-                                                              CameraConfig(image_size=(2, 2)),
-                                                              CameraConfig(image_size=(2, 2)),
-                                                              CameraConfig(image_size=(64, 64))))
+        obs = self.config.get("obs_config", ObservationConfig(CameraConfig(image_size=(128, 128)),
+                                                              CameraConfig(image_size=(128, 128)),
+                                                              CameraConfig(image_size=(128, 128)),
+                                                              CameraConfig(image_size=(128, 128)),
+                                                              CameraConfig(image_size=(128, 128))))
         print("OBS0", vars(obs))
-        obs.left_shoulder_camera.set_all(False)
-        obs.right_shoulder_camera.set_all(False)
-        obs.overhead_camera.set_all(False)
-        obs.wrist_camera.set_all(False)
+        #obs.left_shoulder_camera.set_all(False)
+        #obs.right_shoulder_camera.set_all(False)
+        #obs.overhead_camera.set_all(False)
+        #obs.wrist_camera.set_all(False)
 
 #        for ok, ov in vars(obs).items():
 #            if "camera" in ok and "matrix" not in ok:
 #                print(ok, vars(ov))
 #                obs.
 #            if "front_camera"
-#        obs.set_all(False)
-#        print("\nOBS1", vars(obs))
+        obs.set_all(True)
+        print("Enabling the observation methods")
+        print("\nOBS1", vars(obs))
 #        for ok, ov in vars(obs).items():
 #            if "camera" in ok and "matrix" not in ok:
 #                print(ok, vars(ov))
@@ -44,21 +47,31 @@ class RLBench(Env):
 #        for ok, ov in vars(obs).items():
 #            if "camera" in ok and "matrix" not in ok:
 #                print(ok, vars(ov))
-        action_mode = self.config.get("action_mode", ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
+        action_mode = self.config.get("action_mode",
+                                      ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
+        print("what is this?: {}".format(action_mode))
         headless = self.config.get("headless", True)
+        #headless = self.config.get("headless", False)
         env = Environment(action_mode, obs_config=obs, headless=headless)
+        # threading.get_ident()
+        # threading.current_thread().ident
         env.launch()
         task = env.get_task(self.config.get("task", ReachTarget))
         return env, task
 
     @property
     def observation_space(self):
-        return IntBox(low=0, high=255, shape=(3,) + self.config.get("size", (64, 64)),
+        return IntBox(low=0, high=255, shape=(3,) + self.config.get("size", (128, 128)),
                       dtype="uint8")
 
     @property
     def action_space(self):
-        return FloatBox(low=-1.0, high=1.0, shape=(self._env.action_size,))
+        print("Does the action space {} make sense?".format(FloatBox(low=-1.0,
+                        high=1.0,
+                        shape=(self._env.action_size,))))
+        return FloatBox(low=-1.0,
+                        high=1.0,
+                        shape=(self._env.action_size,))
 
     def step(self, action):
         obs, reward, done = self._task.step(action)
