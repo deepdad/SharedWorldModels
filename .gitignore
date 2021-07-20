@@ -1,4 +1,25 @@
+dreamer-pytorch/data/local/*
+dreamer-pytorch/false/
+data/local/*
 MUJOCO/
+CoppeliaSim_Edu_V4_1_0_Ubuntu20_04/
+CoppeliaSim_Edu_V4_1_0_Ubuntu18_04/
+CoppeliaSim_Edu_V4_1_0_Ubuntu16_04/
+CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz
+CoppeliaSim_Edu_V4_1_0_Ubuntu18_04.tar.xz
+CoppeliaSim_Edu_V4_1_0_Ubuntu16_04.tar.xz
+CoppeliaSim_Edu_V4_1_0_Ubuntu*/  
+CoppeliaSim_Edu_V4_1_0_Ubuntu*.*.*
+RLBench/
+PyRep/
+.idea/
+
+#Mac
+.DS_Store
+
+#GLUT tests
+gluttest*.*
+gluttest*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
