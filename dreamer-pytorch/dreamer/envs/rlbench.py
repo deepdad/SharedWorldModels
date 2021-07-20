@@ -1,6 +1,7 @@
 import threading
 
 import numpy as np
+from pyrep.const import RenderMode
 from rlpyt.envs.base import Env, EnvStep
 from rlpyt.spaces.int_box import IntBox
 from rlpyt.spaces.float_box import FloatBox
@@ -20,39 +21,29 @@ class RLBench(Env):
 
     def _initialize(self):
         # None actually produces the same
-        obs = self.config.get("obs_config", ObservationConfig(CameraConfig(image_size=(128, 128)),
-                                                              CameraConfig(image_size=(128, 128)),
-                                                              CameraConfig(image_size=(128, 128)),
-                                                              CameraConfig(image_size=(128, 128)),
-                                                              CameraConfig(image_size=(128, 128))))
-        print("OBS0", vars(obs))
-        #obs.left_shoulder_camera.set_all(False)
-        #obs.right_shoulder_camera.set_all(False)
-        #obs.overhead_camera.set_all(False)
-        #obs.wrist_camera.set_all(False)
-
-#        for ok, ov in vars(obs).items():
-#            if "camera" in ok and "matrix" not in ok:
-#                print(ok, vars(ov))
-#                obs.
-#            if "front_camera"
-        obs.set_all(True)
-        print("Enabling the observation methods")
-        print("\nOBS1", vars(obs))
-#        for ok, ov in vars(obs).items():
-#            if "camera" in ok and "matrix" not in ok:
-#                print(ok, vars(ov))
-#        obs.front_camera.set_all(True)
-#        print("\nOBS2", vars(obs))
-#        for ok, ov in vars(obs).items():
-#            if "camera" in ok and "matrix" not in ok:
-#                print(ok, vars(ov))
+        self.obs_sz = (64, 64)
+#        obs = self.config.get("obs_config", ObservationConfig(CameraConfig(image_size=self.obs_sz),
+#                                                              CameraConfig(image_size=self.obs_sz),
+#                                                              CameraConfig(image_size=self.obs_sz),
+#                                                              CameraConfig(image_size=self.obs_sz),
+#                                                              CameraConfig(image_size=self.obs_sz)))
+        cam_config = CameraConfig(image_size=self.obs_sz, render_mode=RenderMode.OPENGL3)
+        obs_config = ObservationConfig(front_camera=cam_config)
+        obs_config.left_shoulder_camera.set_all(False)
+        obs_config.right_shoulder_camera.set_all(False)
+        obs_config.overhead_camera.set_all(False)
+        obs_config.wrist_camera.set_all(False)
+        obs_config.front_camera.set_all(True)  # note: TODO: test whether shoulder camera works better
+        print("\nOBS1", vars(obs_config))
+        for ok, ov in vars(obs_config).items():
+            if "camera" in ok and "matrix" not in ok:
+                print(ok, vars(ov))
         action_mode = self.config.get("action_mode",
                                       ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
-        print("what is this?: {}".format(action_mode))
+        #print("what is this?: {}".format(action_mode))
         headless = self.config.get("headless", True)
         #headless = self.config.get("headless", False)
-        env = Environment(action_mode, obs_config=obs, headless=headless)
+        env = Environment(action_mode, obs_config=obs_config, headless=headless)
         # threading.get_ident()
         # threading.current_thread().ident
         env.launch()
@@ -61,7 +52,7 @@ class RLBench(Env):
 
     @property
     def observation_space(self):
-        return IntBox(low=0, high=255, shape=(3,) + self.config.get("size", (128, 128)),
+        return IntBox(low=0, high=255, shape=(3,) + self.config.get("size", self.obs_sz),
                       dtype="uint8")
 
     @property
@@ -80,6 +71,7 @@ class RLBench(Env):
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
+#        print("DONE, REWARD: {}".format(self._task.printreward))
         descriptions, obs = self._task.reset()
         obs = np.transpose(obs.front_rgb, (2, 0, 1))
         del descriptions  # Not used.

@@ -151,7 +151,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
-    relevant_parameter_settings = ""
+    relevant_parameter_settings = "singlefront_64camera_densereward"
     config = {"task": task}
     name = "dreamer_" + task + "_" + relevant_parameter_settings
     with logger_context(log_dir, run_ID, name, config, snapshot_mode=save_model, override_prefix=True,
