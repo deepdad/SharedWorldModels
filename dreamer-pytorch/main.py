@@ -48,11 +48,11 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
     if environments == RLBench:
         environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
         environments_eval_args = {"config": {}}  # "task": task}
-    else:
-        print(environments)
     #    if isinstance(environments, Atari):
     #        environments_args = dict(name=task)
     #        environments_eval_args = dict(name=task)
+    else:
+        print(environments)
     print(environments, RLBench, environments_args)
 
     eval_n_envs=0
@@ -151,7 +151,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
-    relevant_parameter_settings = ""
+    relevant_parameter_settings = ""  # now using dense reward, single front 64 camera and large target object/no distractor target reach by default
     config = {"task": task}
     name = "dreamer_" + task + "_" + relevant_parameter_settings
     with logger_context(log_dir, run_ID, name, config, snapshot_mode=save_model, override_prefix=True,
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     parser.add_argument('--eval', action='store_true')
     parser.add_argument('--save-model', help='save model', type=str, default='last',
                         choices=['all', 'none', 'gap', 'last'])
-    parser.add_argument('--load-model-path', help='load model from path', type=str)  # path to params.pkl
+    parser.add_argument('--load-model-path', help='load (.pkl) model from path', type=str)  # path to params.pkl
 
     default_log_dir = os.path.join(
         os.path.dirname(__file__),
@@ -185,8 +185,7 @@ if __name__ == "__main__":
     print(f'Using run id = {i}')
     if args.environments == "RLBench":
         environments = RLBench
-    #    else:
-    #        environments = DeepMindControl
+
     print("Using the {} environments.".format(environments))
     args.run_ID = i
     build_and_train(
