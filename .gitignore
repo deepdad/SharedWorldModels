@@ -12,6 +12,7 @@ CoppeliaSim_Edu_V4_1_0_Ubuntu*/
 CoppeliaSim_Edu_V4_1_0_Ubuntu*.*.*
 RLBench/
 PyRep/
+false/
 
 #Mac
 .DS_Store
