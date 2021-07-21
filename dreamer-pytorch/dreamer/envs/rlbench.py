@@ -42,7 +42,7 @@ class RLBench(Env):
                                       ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
         #print("what is this?: {}".format(action_mode))
         headless = self.config.get("headless", True)
-        #headless = self.config.get("headless", False)
+        headless = self.config.get("headless", False)
         env = Environment(action_mode, obs_config=obs_config, headless=headless)
         # threading.get_ident()
         # threading.current_thread().ident

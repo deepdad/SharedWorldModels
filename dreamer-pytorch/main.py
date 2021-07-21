@@ -11,8 +11,6 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-# from dreamer.envs.dmc import DeepMindControl
-# from dreamer.envs.atari import Atari
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
@@ -93,8 +91,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
     )
 
     algo = Dreamer(
-        batch_size=50,
-        batch_length=50,
+        batch_size=35,
+        batch_length=35,
         train_every=1000,
         train_steps=100,
         pretrain=100,
