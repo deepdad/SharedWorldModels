@@ -170,7 +170,8 @@ xvfb-run python3 my_pyrep_app.py
 # xvfb-run jupyter notebook
 ```
 You can run RLBench headlessly with VirtualGL. VirtualGL is an open source toolkit that gives any Unix or Linux remote display software the ability to run OpenGL applications **with full 3D hardware acceleration**.
-This is not known to work yet.  
+This works, but you need to have a good GPU yourself, or OpenGL at least locally it seems.
+It's possible to set the steps per frame for CSim (8 by default); a slow display of the simulation seems to hold up the simulation.
 First insure that you have the nVidia proprietary driver installed. I.e. you should get an output when running `nvidia-smi`. Now run the following commands:
 ```bash
 sudo apt-get install xorg libxcb-randr0-dev libxrender-dev libxkbcommon-dev libxkbcommon-x11-0 libavcodec-dev libavformat-dev libswscale-dev
@@ -193,7 +194,7 @@ python my_pyrep_app.py
 To render with the second GPU, you will insetad set display as: `export DISPLAY=:0.1`, and so on.
 Note: VirtualGL may be installed on servers with sudo access rights. It is not available on the tfpool.
 
-
+I have preferred to use VNC but that is costlier than preparing a set of experiments locally and only spinning up a GPU VM to run or scale them.
 ### Tooling
 #### nvtop
 ```bash
@@ -211,6 +212,18 @@ sudo make install
 
 #### Remote Desktop
 GCloud
+
+#### Task Builder
+run 
+```bash
+python RLBench/rlbench/tools/task_builder.py
+```
+then use the commands listed in the terminal. You can't use .ttt files saved by saving from the File menu in CSim. 
+You must save .ttm files using the terminal. Renaming is best, but it will also move the original python file you
+choose to start from. That's why we save a backup in the rlbench_changes/backup folder.
+Doing this will allow you to import camel case tasks in the custom rlbench.py environment or in main.
+If you get errors about a missing handle, then TaskName.py will use variables that are not in theCSim model.
+If the error is that TaskName task is missing in `__init__.py` then you can add it there manually.
 
 ### And
 To run with RLBench, run `python main.py`. add arguments (many HP's in code).
