@@ -1,4 +1,4 @@
-import numpy as np
+
 import torch
 from rlpyt.algos.base import RlAlgorithm
 from rlpyt.replays.sequence.n_step import SamplesFromReplay
@@ -48,7 +48,7 @@ class Dreamer(RlAlgorithm):
             OptimCls=torch.optim.Adam,
             optim_kwargs=None,
             initial_optim_state_dict=None,
-            replay_size=int(5e5),
+            replay_size=int(2.5e5),
             replay_ratio=8,
             n_step_return=1,
             updates_per_sync=1,  # For async mode only. (not implemented)
@@ -79,9 +79,8 @@ class Dreamer(RlAlgorithm):
         self.n_itr = n_itr
         self.batch_spec = batch_spec
         self.mid_batch_reset = mid_batch_reset
-#        print("BATCH_SPEC: ", batch_spec)
-#        print("EXAMPLES: ", examples)
         self.replay_buffer = initialize_replay_buffer(self, examples, batch_spec)
+        self.replay_buffer_second = initialize_replay_buffer(self, examples, batch_spec)
         self.optim_initialize(rank)
 
     def async_initialize(self, agent, sampler_n_itr, batch_spec, mid_batch_reset, examples, world_size=1):
@@ -90,6 +89,7 @@ class Dreamer(RlAlgorithm):
         self.batch_spec = batch_spec
         self.mid_batch_reset = mid_batch_reset
         self.replay_buffer = initialize_replay_buffer(self, examples, batch_spec, async_=True)
+        self.replay_buffer_second = initialize_replay_buffer(self, examples, batch_spec, async_=True)
 
     def optim_initialize(self, rank=0):
         self.rank = rank
@@ -136,7 +136,10 @@ class Dreamer(RlAlgorithm):
         # None is allowed, if it is None, then async sampling would be used
         if samples is not None:
             # Note: discount not saved here
-            self.replay_buffer.append_samples(samples_to_buffer(samples))
+            if samples.env.env_info.arm==0:
+                self.replay_buffer.append_samples(samples_to_buffer(samples))
+            else:
+                self.replay_buffer_second.append_samples(samples_to_buffer(samples))
 
         opt_info = OptInfo(*([] for _ in range(len(OptInfo._fields))))
         if itr < self.prefill:
@@ -144,8 +147,10 @@ class Dreamer(RlAlgorithm):
         if itr % self.train_every != 0:
             return opt_info
         for i in tqdm(range(self.train_steps), desc='Imagination'):
-
-            samples_from_replay = self.replay_buffer.sample_batch(self._batch_size, self.batch_length)
+            if samples.env.env_info.arm==0:
+                samples_from_replay = self.replay_buffer.sample_batch(self._batch_size, self.batch_length)
+            else:
+                samples_from_replay = self.replay_buffer_second.sample_batch(self._batch_size, self.batch_length)
             buffed_samples = buffer_to(samples_from_replay, self.agent.device)
             model_loss, actor_loss, value_loss, loss_info = self.loss(buffed_samples, itr, i)
 

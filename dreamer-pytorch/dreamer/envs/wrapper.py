@@ -35,6 +35,7 @@ class EnvWrapper(Env):
         self.env.close()
 
 
+
 def make_wapper(base_class, wrapper_classes: Sequence = None, wrapper_kwargs: Sequence[Dict] = None):
     """
     Creates the correct factory method with wrapper support.

@@ -1,9 +1,7 @@
 import sys
 
-# from rlpyt.agents.pg.atari import AtariLstmAgent
-# from rlpyt.algos.pg.a2c import A2C
+
 from rlpyt.envs.atari.atari_env import AtariEnv, AtariTrajInfo
-# from rlpyt.experiments.configs.atari.pg.atari_lstm_a2c import configs
 from rlpyt.runners.minibatch_rl import MinibatchRl
 from rlpyt.samplers.parallel.cpu.collectors import CpuWaitResetCollector
 from rlpyt.samplers.parallel.cpu.sampler import CpuSampler

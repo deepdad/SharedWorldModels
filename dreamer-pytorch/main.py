@@ -5,17 +5,16 @@ import torch
 from rlpyt.samplers.collections import TrajInfo
 
 from rlpyt.runners.minibatch_rl import MinibatchRlEval, MinibatchRl
-from rlpyt.samplers.serial.sampler import SerialSampler
 from rlpyt.utils.logging.context import logger_context
 
+from rlbench.action_modes import ArmActionMode, ActionMode
+from sampler.shared_wm_sampler import SharedWorldModelSampler
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
 from dreamer.envs.rlbench import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
-from rlpyt.samplers.serial.collectors import SerialEvalCollector
-
 from dreamer.envs.time_limit import TimeLimit
 
 
@@ -39,55 +38,25 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
     #                                                       dict(amount=action_repeat))
     # so, how to pass arguments to base_class?
     environments_args = {}
-    environments_eval_args = {}
-    #    if environments == DeepMindControl:
-    #        environments_args = {"name": task}
-    #       environments_eval_args = {"name": task}
     if environments == RLBench:
-        environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
-        environments_eval_args = {"config": {}}  # "task": task}
+        environments_args = {"config": {"action_mode": ActionMode(ArmActionMode.ABS_JOINT_VELOCITY)}}
+        s_environments_args = {"config": {"action_mode": ActionMode(ArmActionMode.ABS_JOINT_POSITION)}}
+
     else:
         print(environments)
-    #    if isinstance(environments, Atari):
-    #        environments_args = dict(name=task)
-    #        environments_eval_args = dict(name=task)
+
     print(environments, RLBench, environments_args)
 
-    eval_n_envs=0
-    if eval:
-        eval_n_envs=1
 
-    sampler = SerialSampler(
-        # kwargs suck, prefer to put the parameters here
+    sampler = SharedWorldModelSampler(
         EnvCls=factory_method,
         TrajInfoCls=TrajInfo,
-        # when running with --eval, this seems to be missing somewhere but
-        # this is not a fix (it doesn't work)
-        eval_CollectorCls=SerialEvalCollector,
-        # env_kwargs allows passing the arguments to (JUST?) base_class: so base_class is a poor name choice,
-        # base_class should be named environment_class,
-        # unfortunately, SerialSampler is defined in RLPyt, we can replicate and overwrite it in this repo
-        # - to get rid of **kwargs
-        # - pass the env_kwargs to base_class in the factory method too
-        # - don't split SerialSampler in a super(BaseSampler) and inherited (SerialSampler) class
-        #     unless useful
-        env_kwargs=environments_args,
-        eval_env_kwargs=environments_eval_args,
-        # number of time steps per sample batch
-        batch_T=1,  # 1,
-        # number of environment instances to run (in parallel), becomes second batch dimension
+        first_env_kwargs=environments_args,
+        second_env_kwargs=s_environments_args,
+        env_change_itr=500,
+        batch_T=1,
         batch_B=1,
-        # if taking random number of steps before start of training, to decorrelate batch states:
-        max_decorrelation_steps=0,
-        # number of environment instances for agent evaluation (0 for no separate evaluation)
-        # (sounds like it requires a parallel sampler)
-        # must be set  to 1 if running with --eval
-        # --eval may work when running with VirtualGL, throws a Qt Error when running on Desktop
-        eval_n_envs=eval_n_envs,
-        # max total number of steps (time * n_envs) per evaluation call
-        eval_max_steps=int(10e3),
-        # Optional earlier cutoff for evaluation phase (note that this shouldn't be the imagination phase, which needs long horizons(?))
-        eval_max_trajectories=5,
+        max_decorrelation_steps=0
     )
 
     algo = Dreamer(
@@ -133,12 +102,7 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
         eval_noise=0,
         expl_type="additive_gaussian",
         expl_min=None,
-        expl_decay=None#,
-        # should we add the rest here? (if so, need to step through the trace)
-        #ModelCls=AtariDreamerModel,  # this has many params
-        #initial_model_state_dict=agent_state_dict,
-        #ModelCls=AgentModel,
-        #model_kwargs=None,
+        expl_decay=None
     )
     runner_cls = MinibatchRlEval if eval else MinibatchRl
     runner = runner_cls(
