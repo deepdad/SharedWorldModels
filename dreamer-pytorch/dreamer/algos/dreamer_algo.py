@@ -60,7 +60,7 @@ class Dreamer(RlAlgorithm):
             video_every=int(1e1),
             video_summary_t=25,
             video_summary_b=4,
-            use_pcont=False,
+            use_pcont=True,
             pcont_scale=10.0,
     ):
         super().__init__()

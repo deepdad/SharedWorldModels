@@ -8,12 +8,13 @@ from rlpyt.runners.minibatch_rl import MinibatchRlEval, MinibatchRl
 from rlpyt.samplers.serial.sampler import SerialSampler
 from rlpyt.utils.logging.context import logger_context
 
-from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
+from dreamer.agents.benchmark_dreamer_agent2 import BenchmarkDreamerAgent2
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
 # from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
-from dreamer.envs.rlbench import RLBench
+# from dreamer.envs.rlbench import RLBench
+from dreamer.envs.imitation import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
 from rlpyt.samplers.serial.collectors import SerialEvalCollector
@@ -21,7 +22,7 @@ from rlpyt.samplers.serial.collectors import SerialEvalCollector
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, task="ReachTarget", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,  #
+def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,  #
                     save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
@@ -76,7 +77,7 @@ def build_and_train(log_dir, task="ReachTarget", environments=RLBench, run_ID=0,
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
         # number of time steps per sample batch
-        batch_T=1,  # 1,
+        batch_T=1,
         # number of environment instances to run (in parallel), becomes second batch dimension
         batch_B=1,
         # if taking random number of steps before start of training, to decorrelate batch states:
@@ -115,22 +116,24 @@ def build_and_train(log_dir, task="ReachTarget", environments=RLBench, run_ID=0,
         OptimCls=torch.optim.Adam,
         optim_kwargs=None,
         initial_optim_state_dict=optimizer_state_dict,
+
         replay_size=int(5e5),
-        replay_ratio=8,
-        n_step_return=1,
-        updates_per_sync=1,  # For async mode only. (not implemented)
+        replay_ratio=8,  # !D
+        n_step_return=1,  #!D
+
+        updates_per_sync=1,  #? For async mode only. (not implemented)
         free_nats=3,
-        kl_scale=1,
+        kl_scale=1.0,  # here: 0.1
         type=torch.float,
         prefill=5000,
         log_video=True,
         video_every=int(1e1),
         video_summary_t=25,
         video_summary_b=4,
-        use_pcont=False,
+        use_pcont=True,  # False
         pcont_scale=10.0,
     )
-    agent = BenchmarkDreamerAgent(
+    agent = BenchmarkDreamerAgent2(
         train_noise=0.3,
         eval_noise=0,
         expl_type="additive_gaussian",
@@ -161,7 +164,7 @@ def build_and_train(log_dir, task="ReachTarget", environments=RLBench, run_ID=0,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--task', help='task or (Atari) game', default='ReachTarget')
+    parser.add_argument('--task', help='task or (Atari) game', default='FastSingle2xtarget')
     parser.add_argument('--environments', help='Environments (class) to use', default='RLBench')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)

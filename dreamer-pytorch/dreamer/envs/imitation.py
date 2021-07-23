@@ -1,3 +1,4 @@
+import queue
 import threading
 
 import numpy as np
@@ -8,9 +9,10 @@ from rlpyt.spaces.float_box import FloatBox
 from rlbench.environment import Environment
 from rlbench.action_modes import ArmActionMode, ActionMode
 from rlbench.observation_config import ObservationConfig, CameraConfig
-from rlbench.tasks import FastSingle2xtarget
+from rlbench.tasks import ReachTarget
 from rlbench.tasks import SmallTargetReachNoDistractors
 from rlbench.tasks import LargeTargetNoDistractorsDt200
+from rlbench.tasks import FastSingle2xtarget
 
 from dreamer.envs.env import EnvInfo
 
@@ -22,6 +24,7 @@ class RLBench(Env):
         self._env, self._task = self._initialize()
 
     def _initialize(self):
+        DATASET = 'PATH/TO/DATASET'
         self.obs_sz = (64, 64)
         cam_config = CameraConfig(image_size=self.obs_sz , render_mode=RenderMode.OPENGL3)
         obs_config = ObservationConfig(wrist_camera=cam_config)
@@ -40,6 +43,27 @@ class RLBench(Env):
         env = Environment(action_mode, obs_config=obs_config, headless=headless)
         env.launch()
         task = env.get_task(self.config.get("task", FastSingle2xtarget))
+
+        n_demos = 1
+        demos = task.get_demos(n_demos, live_demos=True)
+        queue_size = 0
+        for demo in demos:
+            queue_size += len(demo._observations)
+        self.demos = queue.Queue(queue_size)
+        for demo in demos:
+            for i in range(len(demo._observations)):
+                self.demos.put(np.concatenate(demo._observations[i].joint_velocities +
+                                [demo._observations[i].gripper_open]))
+                # actualy, the actions are target dependent, so the target locations are needed
+                # as well and should be set when feeding actions to the sampler
+        #demos = np.array(demos).flatten()
+
+        #batch = np.random.choice(demos, replace=False)
+        # batch_images = [obs.left_shoulder_camera.rgb for obs in batch]
+        # predicted_actions = predict_action(batch)
+        # ground_truth_actions = [obs.joint_velocities for obs in batch]
+        # loss = calculate_loss(ground_truth_actions, predicted_actions)
+
         return env, task
 
     @property
