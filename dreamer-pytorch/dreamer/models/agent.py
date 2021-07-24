@@ -29,7 +29,7 @@ class AgentModel(nn.Module):
             value_layers=3,
             value_hidden=200,
             dtype=torch.float,
-            use_pcont=False,
+            use_pcont=True,
             pcont_layers=3,
             pcont_hidden=200,
             **kwargs,
@@ -131,5 +131,19 @@ class AtariDreamerModel(AgentModel):
         return_spec = buffer_func(return_spec, restore_leading_dims, lead_dim, T, B)
         return return_spec
 
+class TODODreamerModel(AgentModel):
+    def forward(self, observation: torch.Tensor, prev_action: torch.Tensor = None, prev_state: RSSMState = None):
+        lead_dim, T, B, img_shape = infer_leading_dims(observation, 3)
+        observation = observation.reshape(T * B, *img_shape).type(self.dtype) / 255.0 - 0.5
+        prev_action = prev_action.reshape(T * B, -1).to(self.dtype)
+        if prev_state is None:
+            prev_state = self.representation.initial_state(prev_action.size(0), device=prev_action.device,
+                                                           dtype=self.dtype)
+        state = self.get_state_representation(observation, prev_action, prev_state)
+
+        action, action_dist = self.policy(state)
+        return_spec = ModelReturnSpec(action, state)
+        return_spec = buffer_func(return_spec, restore_leading_dims, lead_dim, T, B)
+        return return_spec
 
 ModelReturnSpec = namedarraytuple('ModelReturnSpec', ['action', 'state'])
