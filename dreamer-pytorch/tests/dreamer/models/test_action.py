@@ -1,7 +1,6 @@
 import pytest
 import torch
 
-from dreamer.models.action import ActionDecoder
 
 
 @pytest.mark.parametrize('dist', ['tanh_normal', 'one_hot', 'relaxed_one_hot', 'not_implemented_dist'])
@@ -11,11 +10,6 @@ def test_action_decoder(dist):
     feature_size = 20
     hidden_size = 40
     layers = 5
-
-    try:
-        action_decoder = ActionDecoder(action_size, feature_size, hidden_size, layers, dist)
-    except NotImplementedError:
-        return
 
     features = torch.randn(batch_size, feature_size)
 
