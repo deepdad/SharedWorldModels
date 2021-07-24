@@ -60,6 +60,9 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
     if eval:
         eval_n_envs=1
 
+    batching_number = 1
+    print("batching number is set to {}: see main.py".format(batching_number))
+
     sampler = SerialSampler(
         # kwargs suck, prefer to put the parameters here
         EnvCls=factory_method,
@@ -77,7 +80,31 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
         # number of time steps per sample batch
-        batch_T=1,
+        # this will fill the replay buffer with batch_T samples at a time
+        # note however that the agent's prefill is in terms of
+        # sampling operations, so setting this to 1000
+        # will on the one hand fill the buffer with 1000 samples at a time,
+        # but the training conditions
+        # (        if itr < self.prefill:
+        #             return opt_info
+        #         if itr % self.train_every != 0:
+        #             return opt_info
+        # )
+        # will also only be checked every  1000-sample iteration
+        # =>
+        # batch_T=some_number -> self.prefill = prefill/some_number
+        # batch_T=some_number -> self.train_every = train_every/some_number
+        #    but with train_every, this may result in a fraction!!
+        # !! check for side-effects:
+        # progress bar (tqdm) will be wrong!!
+        # the question is why this would be faster or better? it actually only saves a frequent local-memory to replay
+        # buffer copy step, still some performance gain
+        # a better improvement may be to use shorter/longer episodes during prefill
+        #  longer -> fewer episode starts
+        #  shorter -> fewer (randomly) successful prefill episodes (but complex tasks may rarely be randomly successful
+        #              anyway
+        # other uses of prefill and train_every: main.py, tests/dreamer/test_main.py, algos/dreamer_algo.py
+        batch_T=batching_number,
         # number of environment instances to run (in parallel), becomes second batch dimension
         batch_B=1,
         # if taking random number of steps before start of training, to decorrelate batch states:
@@ -96,7 +123,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
     algo = Dreamer(
         batch_size=50,
         batch_length=50,
-        train_every=1000,
+        train_every=1000/batching_number,
         train_steps=100,
         pretrain=100,
         model_lr=6e-4,
@@ -125,7 +152,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         free_nats=3,
         kl_scale=1.0,  # here: 0.1
         type=torch.float,
-        prefill=5000,
+        prefill=1, # 5000/batching_number,
         log_video=True,
         video_every=int(1e1),
         video_summary_t=25,
@@ -150,7 +177,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         algo=algo,
         agent=agent,
         sampler=sampler,
-        n_steps=1e6,
+        n_steps=1e6,  #  = n_steps / batching_number
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
@@ -199,5 +226,5 @@ if __name__ == "__main__":
         cuda_idx=args.cuda_idx,
         eval=args.eval,
         save_model=args.save_model,
-        load_model_path=args.load_model_path
+        load_model_path="/home/DLLAB/SharedWorldModels/dreamer-pytorch/data/local/20210724/run_13/params.pkl"  #args.load_model_path
     )

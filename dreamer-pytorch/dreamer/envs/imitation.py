@@ -44,7 +44,7 @@ class RLBench(Env):
         env.launch()
         task = env.get_task(self.config.get("task", FastSingle2xtarget))
 
-        n_demos = 1
+        """n_demos = 1
         demos = task.get_demos(n_demos, live_demos=True)
         queue_size = 0
         for demo in demos:
@@ -57,7 +57,7 @@ class RLBench(Env):
                 # actualy, the actions are target dependent, so the target locations are needed
                 # as well and should be set when feeding actions to the sampler
         #demos = np.array(demos).flatten()
-
+        """
         #batch = np.random.choice(demos, replace=False)
         # batch_images = [obs.left_shoulder_camera.rgb for obs in batch]
         # predicted_actions = predict_action(batch)
