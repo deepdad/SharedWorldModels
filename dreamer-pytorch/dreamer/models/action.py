@@ -57,25 +57,24 @@ class ActionDecoder(nn.Module):
 
 
 class ActionEncoder(nn.Module):
-    def __init__(self, action_parameters_size, feature_size, hidden_size, layers, dist='tanh_normal',
-                 activation=nn.ELU, min_std=1e-4, init_std=5, mean_scale=5):
+    def __init__(self, action_parameters_size, hidden_size, layers,
+                 activation=nn.ELU):
         super().__init__()
-        self.action_size = action_parameters_size
+        self.action_parameters_size = action_parameters_size
         self.hidden_size = hidden_size
         self.layers = layers
         self.activation = activation
-        self.min_std = min_std
-        self.init_std = init_std
-        self.mean_scale = mean_scale
         self.feedforward_model = self.build_model()
-        self.raw_init_std = np.log(np.exp(self.init_std) - 1)
+        print("ENCODER {} " .format(self.build_model()))
 
     def build_model(self):
-        model = [nn.Linear(self.hidden_size, self.action_parameter_size)]
+        layer_size = int(self.hidden_size/5)
+        model = [nn.Linear(self.action_parameters_size, layer_size)]
         model += [self.activation()]
-        for i in range(1, self.layers):
-            model += [nn.Linear(self.hidden_size, self.hidden_size)]
-            model += [self.activation()]
+        model += [nn.Linear(layer_size, layer_size*5)]
+        model += [self.activation()]
+        model += [nn.Linear(layer_size*5, layer_size*5)]
+        model += [self.activation()]
         return nn.Sequential(*model)
 
     def forward(self, action_parameters):
