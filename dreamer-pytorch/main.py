@@ -28,15 +28,8 @@ def build_and_train(log_dir, task="TargetReach", environments=RLBench, run_ID=0,
 
     factory_method = make_wapper(
         base_class=environments,
-        # wrapper_classes: list of wrapper classes in order inner-first, outer-last
         wrapper_classes=[ActionRepeat, NormalizeActions, TimeLimit],
-        # list of kwargs dictionaries passed to the wrapper classes:
         wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=100 / action_repeat)])
-    # you'll have: TimeLimit(NormalizeActions(ActionRepeat(RLBench,
-    #                        dict(amount=action_repeat),
-    #                                         dict(),
-    #                                                       dict(amount=action_repeat))
-    # so, how to pass arguments to base_class?
     environments_args = {}
     if environments == RLBench:
         environments_args = {"config": {"action_mode": ActionMode(ArmActionMode.ABS_JOINT_VELOCITY)}}
