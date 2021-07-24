@@ -60,7 +60,7 @@ class Dreamer(RlAlgorithm):
             video_every=int(1e1),
             video_summary_t=25,
             video_summary_b=4,
-            use_pcont=True,
+            use_pcont=False,
             pcont_scale=10.0,
     ):
         super().__init__()
@@ -247,7 +247,7 @@ class Dreamer(RlAlgorithm):
 #        [[0.9900]],
 #        [[0.9900]]])
 ####
-            support =[]
+            support =[]  # support currently disallows use_pcont
             value = pcont_target
             try:
                 support = pcont_pred.support

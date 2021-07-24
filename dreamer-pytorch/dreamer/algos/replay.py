@@ -21,12 +21,6 @@ def initialize_replay_buffer(self, examples, batch_spec, async_=False):
         discount=self.discount,
         n_step_return=self.n_step_return,
     )
-    print("example=", example_to_buffer,
-        "size=", self.replay_size,
-        "B=", batch_spec.B,
-        "rnn_state_interval=", 0,  # do not save rnn state
-        "discount=", self.discount,
-        "n_step_return=", self.n_step_return)
     replay_buffer = UniformSequenceReplayBuffer(**replay_kwargs)
     return replay_buffer
 

@@ -29,7 +29,7 @@ class AgentModel(nn.Module):
             value_layers=3,
             value_hidden=200,
             dtype=torch.float,
-            use_pcont=True,
+            use_pcont=False,
             pcont_layers=3,
             pcont_hidden=200,
             **kwargs,
@@ -131,7 +131,7 @@ class AtariDreamerModel(AgentModel):
         return_spec = buffer_func(return_spec, restore_leading_dims, lead_dim, T, B)
         return return_spec
 
-class TODODreamerModel(AgentModel):
+class SWMDreamerModel(AgentModel):
     def forward(self, observation: torch.Tensor, prev_action: torch.Tensor = None, prev_state: RSSMState = None):
         lead_dim, T, B, img_shape = infer_leading_dims(observation, 3)
         observation = observation.reshape(T * B, *img_shape).type(self.dtype) / 255.0 - 0.5

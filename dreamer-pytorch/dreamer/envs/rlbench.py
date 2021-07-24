@@ -30,10 +30,10 @@ class RLBench(Env):
         obs_config.overhead_camera.set_all(False)
         obs_config.wrist_camera.set_all(True)
         obs_config.front_camera.set_all(False)  # note: TODO: test whether shoulder camera works better
-        print("\nOBS1", vars(obs_config))
-        for ok, ov in vars(obs_config).items():
-            if "camera" in ok and "matrix" not in ok:
-                print(ok, vars(ov))
+        # print("\nOBS1", vars(obs_config))
+        # for ok, ov in vars(obs_config).items():
+        #     if "camera" in ok and "matrix" not in ok:
+        #         print(ok, vars(ov))
         action_mode = self.config.get("action_mode",
                                       ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
         headless = self.config.get("headless", False)
@@ -49,7 +49,7 @@ class RLBench(Env):
 
     @property
     def action_space(self):
-        print("Does the action space {} make sense?".format(FloatBox(low=-1.0,
+        # print("The FloatBox(8,) action space (here, {}) consists of 7 joints and 1 gripper value.".format(FloatBox(low=-1.0,
                         high=1.0,
                         shape=(self._env.action_size,))))
         return FloatBox(low=-1.0,
