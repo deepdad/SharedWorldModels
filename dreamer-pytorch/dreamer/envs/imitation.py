@@ -73,7 +73,7 @@ class RLBench(Env):
 
     @property
     def action_space(self):
-        print("Does the action space {} make sense?".format(FloatBox(low=-1.0,
+        print("The action space {} consists of 7 joints and 1 gripper value.".format(FloatBox(low=-1.0,
                         high=1.0,
                         shape=(self._env.action_size,))))
         return FloatBox(low=-1.0,
