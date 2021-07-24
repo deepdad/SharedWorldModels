@@ -5,6 +5,7 @@ from rlpyt.utils.buffer import buffer_func
 from rlpyt.utils.collections import namedarraytuple
 from rlpyt.utils.tensor import infer_leading_dims, restore_leading_dims, to_onehot, from_onehot
 
+from dreamer.models.action import ActionDecoder
 from dreamer.models.dense import DenseModel
 from dreamer.models.observation import ObservationDecoder, ObservationEncoder
 from dreamer.models.rnns import RSSMState, RSSMRepresentation, RSSMTransition, RSSMRollout, get_feat
@@ -47,6 +48,7 @@ class AgentModel(nn.Module):
         feature_size = stochastic_size + deterministic_size
         self.action_size = output_size
         self.action_dist = action_dist
+        self.action_decoder = ActionDecoder(output_size, feature_size, action_hidden_size, action_layers, action_dist)
         self.reward_model = DenseModel(feature_size, reward_shape, reward_layers, reward_hidden)
         self.value_model = DenseModel(feature_size, value_shape, value_layers, value_hidden)
         self.dtype = dtype
