@@ -101,7 +101,7 @@ class Dreamer(RlAlgorithm):
                               model.transition]
         if self.use_pcont:
             self.model_modules += [model.pcont]
-        self.actor_modules = [model.action_decoder]
+        self.actor_modules = [model.action_decoder, model.action_encoder]
         self.value_modules = [model.value_model]
         self.model_optimizer = torch.optim.Adam(get_parameters(self.model_modules), lr=self.model_lr,
                                                 **self.optim_kwargs)

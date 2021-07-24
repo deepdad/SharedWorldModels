@@ -8,7 +8,7 @@ from rlpyt.runners.minibatch_rl import MinibatchRlEval, MinibatchRl
 from rlpyt.samplers.serial.sampler import SerialSampler
 from rlpyt.utils.logging.context import logger_context
 
-from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent2
+from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
 # from dreamer.envs.dmc import DeepMindControl
@@ -135,7 +135,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         use_pcont=False,
         pcont_scale=10.0,
     )
-    agent = BenchmarkDreamerAgent2(
+    agent = BenchmarkDreamerAgent(
         train_noise=0.3,
         eval_noise=0,
         expl_type="additive_gaussian",

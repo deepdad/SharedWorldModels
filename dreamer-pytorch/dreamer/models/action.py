@@ -54,3 +54,31 @@ class ActionDecoder(nn.Module):
         elif self.dist == 'relaxed_one_hot':
             dist = torch.distributions.RelaxedOneHotCategorical(0.1, logits=x)
         return dist
+
+
+class ActionEncoder(nn.Module):
+    def __init__(self, action_parameters_size, feature_size, hidden_size, layers, dist='tanh_normal',
+                 activation=nn.ELU, min_std=1e-4, init_std=5, mean_scale=5):
+        super().__init__()
+        self.action_size = action_parameters_size
+        self.hidden_size = hidden_size
+        self.layers = layers
+        self.activation = activation
+        self.min_std = min_std
+        self.init_std = init_std
+        self.mean_scale = mean_scale
+        self.feedforward_model = self.build_model()
+        self.raw_init_std = np.log(np.exp(self.init_std) - 1)
+
+    def build_model(self):
+        model = [nn.Linear(self.hidden_size, self.action_parameter_size)]
+        model += [self.activation()]
+        for i in range(1, self.layers):
+            model += [nn.Linear(self.hidden_size, self.hidden_size)]
+            model += [self.activation()]
+        return nn.Sequential(*model)
+
+    def forward(self, action_parameters):
+        x = self.feedforward_model(action_parameters)
+        dist = None
+        return dist

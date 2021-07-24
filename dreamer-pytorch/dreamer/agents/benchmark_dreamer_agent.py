@@ -10,7 +10,7 @@ DreamerAgentInfo = namedarraytuple('DreamerAgentInfo', ['prev_state'])
 
 
 # see classes BaseAgent and RecurrentAgentMixin for documentation
-class BenchmarkDreamerAgent2(RecurrentAgentMixin, BaseAgent):
+class BenchmarkDreamerAgent(RecurrentAgentMixin, BaseAgent):
 
     def __init__(self, ModelCls=SWMDreamerModel, train_noise=0.4, eval_noise=0,
                  expl_type="additive_gaussian", expl_min=0.1, expl_decay=7000,
