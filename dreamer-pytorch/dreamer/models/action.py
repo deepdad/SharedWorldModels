@@ -37,6 +37,12 @@ class ActionDecoder(nn.Module):
             raise NotImplementedError(f'{self.dist} not implemented')
         return nn.Sequential(*model)
 
+    def switch(self, some_argument, another_argument):
+        """"
+            This takes the top layer off and replaces it by one that fits.
+        """
+        pass
+
     def forward(self, state_features):
         x = self.feedforward_model(state_features)
         dist = None
@@ -65,19 +71,47 @@ class ActionEncoder(nn.Module):
         self.layers = layers
         self.activation = activation
         self.feedforward_model = self.build_model()
-        print("ENCODER {} " .format(self.build_model()))
+        self.recurrent_model = self.build_recurrent_model()
+        print("ENCODER {} " .format(self.feedforward_model))
+        print("LSTM ENCODER {} " .format(self.recurrent_model))
+
+    def switch(self, some_argument, another_argument):
+        """"
+            This takes the top layer off and replaces it by one that fits.
+        """
+        pass
 
     def build_model(self):
-        layer_size = int(self.hidden_size/5)
-        model = [nn.Linear(self.action_parameters_size, layer_size)]
+        """The encoder is not really doing anything. The idea is to replace the top layer
+           here with the different arm. So the size should represent that. The top layer can
+           then be stored.
+           Alternatively, we use two parallel top layers.
+           It seems better if the output matches the input shape, but this is batch dependent:
+           the Dreamer uses 50 length 50 batches and this becomes the input shape:
+           the actions that have to be encoded have some action_space shape.
+           Therefore, it is better to feed the actions one by one.
+
+        """
+        layer_size = 10
+        input_size = 8
+        model = [nn.Linear(input_size, 10)]
         model += [self.activation()]
-        model += [nn.Linear(layer_size, layer_size*5)]
+        model += [nn.Linear(10, 10)]
         model += [self.activation()]
-        model += [nn.Linear(layer_size*5, layer_size*5)]
+        model += [nn.Linear(10, 12)]
         model += [self.activation()]
         return nn.Sequential(*model)
 
-    def forward(self, action_parameters):
-        x = self.feedforward_model(action_parameters)
-        dist = None
-        return dist
+    def build_recurrent_model(self):
+        lstm_ = torch.nn.LSTM(8, 12)
+        return lstm_
+
+    def forward(self, action_parameters, network_type=None):
+        if network_type == 0:
+            x = self.feedforward_model(action_parameters)
+            dist = None
+            return x
+        else:
+            # for LSTM they are embedded_actions
+            x = self.recurrent_model(action_parameters)
+            return x

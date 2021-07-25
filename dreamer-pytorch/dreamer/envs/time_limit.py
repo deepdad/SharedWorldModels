@@ -20,7 +20,7 @@ class TimeLimit(EnvWrapper):
             if isinstance(info, EnvInfo):
                 # The last attribute in EnvInfo indicates termination of the trajectory
                 # we do not set done = True because it should only be controlled by the environment
-                info = EnvInfo(info.discount, info.game_score, True)
+                info = EnvInfo(info.discount, info.game_score, True, info.arm)
             self._step = None
         return EnvStep(obs, reward, done, info)
 

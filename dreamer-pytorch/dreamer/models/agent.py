@@ -52,9 +52,10 @@ class AgentModel(nn.Module):
         self.action_decoder = ActionDecoder(output_size, feature_size, action_hidden_size, action_layers, action_dist)
 ####
         print("ACTION DECODER: {}".format(self.action_decoder))
+        self.emb = torch.nn.Embedding(50, 10)
         self.action_encoder_size = output_size
         self.action_encoder_dist = action_dist
-        self.action_Encoder = ActionEncoder(output_size*2, action_hidden_size, action_layers)
+        self.action_encoder = ActionEncoder(output_size*2, action_hidden_size, action_layers)
 ####
         self.reward_model = DenseModel(feature_size, reward_shape, reward_layers, reward_hidden)
         self.value_model = DenseModel(feature_size, value_shape, value_layers, value_hidden)

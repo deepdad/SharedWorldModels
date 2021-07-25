@@ -34,10 +34,10 @@ class RLBench(Env):
         # for ok, ov in vars(obs_config).items():
         #     if "camera" in ok and "matrix" not in ok:
         #         print(ok, vars(ov))
-        action_mode = self.config.get("action_mode",
+        self.action_mode = self.config.get("action_mode",
                                       ActionMode(ArmActionMode.ABS_JOINT_VELOCITY))
         headless = self.config.get("headless", False)
-        env = Environment(action_mode, obs_config=obs_config, headless=headless)
+        env = Environment(self.action_mode, obs_config=obs_config, headless=headless)
         env.launch()
         task = env.get_task(self.config.get("task", FastSingle2xtarget))
         return env, task
@@ -49,7 +49,7 @@ class RLBench(Env):
 
     @property
     def action_space(self):
-        # print("The FloatBox(8,) action space (here, {}) consists of 7 joints and 1 gripper value.".format(FloatBox(low=-1.0,
+        print("The FloatBox(8,) action space (here, {}) consists of 7 joints and 1 gripper value.".format(FloatBox(low=-1.0,
                         high=1.0,
                         shape=(self._env.action_size,))))
         return FloatBox(low=-1.0,
@@ -60,7 +60,7 @@ class RLBench(Env):
         obs, reward, done = self._task.step(action)
         #obs = np.transpose(obs.front_rgb, (2, 0, 1))
         obs = np.transpose(obs.wrist_rgb, (2, 0, 1))
-        info = EnvInfo(None, None, done)
+        info = EnvInfo(None, None, done, self.action_mode.arm.value)
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
@@ -72,6 +72,10 @@ class RLBench(Env):
 
     def render(self, *args, **kwargs):
         pass
+
+    def shutdown(self):
+        self._env.shutdown()
+        print("env shut down")
 
     @property
     def horizon(self):

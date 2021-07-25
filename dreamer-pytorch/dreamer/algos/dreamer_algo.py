@@ -48,7 +48,7 @@ class Dreamer(RlAlgorithm):
             OptimCls=torch.optim.Adam,
             optim_kwargs=None,
             initial_optim_state_dict=None,
-            replay_size=int(5e5),
+            replay_size=int(2.5e5),
             replay_ratio=8,
             n_step_return=1,
             updates_per_sync=1,  # For async mode only. (not implemented)
@@ -79,9 +79,8 @@ class Dreamer(RlAlgorithm):
         self.n_itr = n_itr
         self.batch_spec = batch_spec
         self.mid_batch_reset = mid_batch_reset
-#        print("BATCH_SPEC: ", batch_spec)
-#        print("EXAMPLES: ", examples)
         self.replay_buffer = initialize_replay_buffer(self, examples, batch_spec)
+        self.replay_buffer_2 = initialize_replay_buffer(self, examples, batch_spec)
         self.optim_initialize(rank)
 
     def async_initialize(self, agent, sampler_n_itr, batch_spec, mid_batch_reset, examples, world_size=1):
@@ -137,6 +136,10 @@ class Dreamer(RlAlgorithm):
         if samples is not None:
             # Note: discount not saved here
             self.replay_buffer.append_samples(samples_to_buffer(samples))
+            if samples.env.env_info.arm == 0:
+                self.replay_buffer.append_samples(samples_to_buffer(samples))
+            else:
+                self.replay_buffer_2.append_samples(samples_to_buffer(samples))
 
         opt_info = OptInfo(*([] for _ in range(len(OptInfo._fields))))
         if itr < self.prefill:
@@ -145,8 +148,14 @@ class Dreamer(RlAlgorithm):
             return opt_info
         for i in tqdm(range(self.train_steps), desc='Imagination'):
 
-            samples_from_replay = self.replay_buffer.sample_batch(self._batch_size, self.batch_length)
+            if samples.env.env_info.arm == 0:
+                samples_from_replay = self.replay_buffer.sample_batch(self._batch_size, self.batch_length)
+            else:
+                samples_from_replay = self.replay_buffer_2.sample_batch(self._batch_size, self.batch_length)
+
+            #encoded_samples = self.agent.model.action_encoder(samples_from_replay)  # (8, 50, 51)
             buffed_samples = buffer_to(samples_from_replay, self.agent.device)
+            #encoded_samples = self.agent.model.action_encoder(buffed_samples)
             model_loss, actor_loss, value_loss, loss_info = self.loss(buffed_samples, itr, i)
 
             self.model_optimizer.zero_grad()
@@ -201,6 +210,36 @@ class Dreamer(RlAlgorithm):
         done = samples.done
         done = done.unsqueeze(2)
 
+        if opt_itr == 1:
+            print("OPT ITR: {}".format(opt_itr))
+            print("ACTION: {}".format(action.shape))
+            flatten = torch.nn.Flatten()
+            fa = flatten(action)
+            fa = flatten(fa)
+            print("FLAT ACTION SIZE: {}".format(fa.size()))
+            encoded_action = self.agent.model.action_encoder(action)
+            print("ENCODED ACTION 0: {}".format(encoded_action[0].shape))
+            for i, t in enumerate(encoded_action[1]):
+                print("FCN ENCODED ACTION: {}, {}".format(i, t.shape))  # 50, 10, 12
+
+            # encode sequential actions
+            packed = torch.nn.utils.rnn.pack_sequence([action])
+            # emb = torch.nn.Embedding(50, 10)
+            print("PACKED: {}".format(packed.data.shape))
+            # PACKED: torch.Size([50, 10, 8]) i.e. [batch_size, n_actions, action_size]
+            # print("PACKED: {}".format(packed.data, packed.batch_sizes, packed.sorted_indices, packed.unsorted_indices))
+
+            #embedded_data = self.agent.model.emb(packed.data)
+            #embedded_actions = torch.nn.utils.rnn.PackedSequence(
+            #    embedded_data, packed.batch_sizes)
+
+            # lstm_encoded_actions = self.agent.model.action_encoder(action, network_type="LSTM")
+            lstm_encoded_actions = self.agent.model.action_encoder(packed.data, network_type="LSTM")
+            print("ENCODED ACTION 0: {}".format( lstm_encoded_actions[0].shape))
+            for i, t in enumerate(lstm_encoded_actions[1]):
+                print("LSTM ENCODED ACTION: {}, {}".format(i, t.shape))  # 50, 10, 12
+
+
         # Extract tensors from the Samples object
         # They all have the batch_t dimension first, but we'll put the batch_b dimension first.
         # Also, we convert all tensors to floats so they can be fed into our models.
@@ -214,8 +253,11 @@ class Dreamer(RlAlgorithm):
         # embed the image
         embed = model.observation_encoder(observation)
 
+        # op zich is het niet zo'nprobleem om hier embedded actions te gebruiken
         prev_state = model.representation.initial_state(batch_b, device=action.device, dtype=action.dtype)
         # Rollout model by taking the same series of actions as the real model
+        # HIER OOK NIET ZO'N PROBLEEM
+        # (using the dynamics model to generate additional rollouts)
         prior, post = model.rollout.rollout_representation(batch_t, embed, action, prev_state)
         # Flatten our data (so first dimension is batch_t * batch_b = batch_size)
         # since we're going to do a new rollout starting from each state visited in each batch.
@@ -251,7 +293,7 @@ class Dreamer(RlAlgorithm):
             value = pcont_target
             try:
                 support = pcont_pred.support
-                print(support) # Boolean
+                print(support)  # Boolean
 
             except NotImplementedError:
                 warnings.warn(f'{self.__class__} does not define `support` to enable ' +

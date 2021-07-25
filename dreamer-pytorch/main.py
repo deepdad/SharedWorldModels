@@ -13,8 +13,8 @@ from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
 # from dreamer.envs.dmc import DeepMindControl
 # from dreamer.envs.atari import Atari
-# from dreamer.envs.rlbench import RLBench
-from dreamer.envs.imitation import RLBench
+from dreamer.envs.rlbench import RLBench
+# from dreamer.envs.imitation import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
 from dreamer.envs.normalize_actions import NormalizeActions
 from rlpyt.samplers.serial.collectors import SerialEvalCollector
@@ -96,9 +96,9 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
     )
 
     algo = Dreamer(
-        batch_size=50,
+        batch_size=10,
         batch_length=50,
-        train_every=1000/batching_number,
+        train_every=100/batching_number,
         train_steps=100,
         pretrain=100,
         model_lr=6e-4,
@@ -127,7 +127,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         free_nats=3,
         kl_scale=1.0,  # here: 0.1
         type=torch.float,
-        prefill=5000/batching_number,
+        prefill=500/batching_number,
         log_video=True,
         video_every=int(1e1),
         video_summary_t=25,

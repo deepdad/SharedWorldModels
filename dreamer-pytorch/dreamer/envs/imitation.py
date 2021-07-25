@@ -84,7 +84,7 @@ class RLBench(Env):
         obs, reward, done = self._task.step(action)
         #obs = np.transpose(obs.front_rgb, (2, 0, 1))
         obs = np.transpose(obs.wrist_rgb, (2, 0, 1))
-        info = EnvInfo(None, None, done)
+        info = EnvInfo(None, None, done, None)
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
