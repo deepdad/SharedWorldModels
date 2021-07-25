@@ -13,6 +13,7 @@ CoppeliaSim_Edu_V4_1_0_Ubuntu*.*.*
 RLBench/
 PyRep/
 false/
+.idea/
 
 rlpyt/
 #Mac
