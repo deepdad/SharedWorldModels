@@ -62,24 +62,62 @@
         <div id="dynamics">
            <h2>Dynamics</h2>
         </div>
+        <p>The network encodes the MDP into an abstract representation. That then
+           has its own dynamics. It would seem that these dynamics follow the original
+           dynamics in lockstep. Indeed, abstracting over time is future work as far
+           as this paper goes. </p>
+          <p>However, the model is Markovian:
+           <blockquote><p>The latent dynamics define a Markov decision process (MDP; Sutton, 1991)
+                          that is fully observed because the compact model states s_t are Markovian."</p>
+           </blockquote>p>
+          So the model can be sampled deep into the future.
        <p>In sum, "leveraging the neural network latent dynamics" is what it is.</p>
 
 
         <div id="experiments">
            <h2>Experiments</h2>
         </div>
+       <a href="https://tensorboard.dev/experiment/gNNiou9gSDOYoMWG2njUxg/#scalars" title="experiment1">Experiment 1</a>
        <p>The sparse reward didn't seem to produce the desired results. We implemented a dense reward.
           This experiment uses it, with one 64camera, gcloud, TargetReach.</p>
-       <a href="https://tensorboard.dev/experiment/gNNiou9gSDOYoMWG2njUxg/#scalars" title="experiment1">Experiment 1</a>
 
+       <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment2">Experiment 2</a>
        <p>The sparse reward didn't seem to produce the desired results. We implemented a dense reward.
           This experiment uses it, with one 64camera, gcloud, TargetReach.
           RLBench originally has objects that were detectable by a 128 camera.
           To make sure a 64 pixel camera can see the target, we doubled its size. We also removed two distractor objects, to make this
           task easier to learn. This does work. 
           </p>
-       <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment2">Experiment 2</a>
 
+       <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment3">Experiment 3</a>
+       <p>We started implementation of imitation learning. It doesn't use the real reward.
+           Instead, the prefill replay_buffer is filled with real actions and observations
+           and the reward is based on the episode length: 0 if done is not reached, discounted iif it is.
+          </p>
+
+    <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment4">Experiment 4</a>
+    <p>We also began an implementation of shared world models, that is, the normal action model is a decoder,
+        in this experiment, we replaced the final layer of the decoder when the robot arm changed, where each of both
+        arms has its own action parameterization.<br/>
+        The actions in the original model are used in a few places:<br/>
+          <ul>
+              <li>the representation model (a_{t-1})</li>
+              <li>the transition model (a_{t-1})</li>
+              <li>to fill the prefill buffer</li>
+              <li>to imagine trajectories {(s_tau, a_tau)^{t+H}_{tau=t}} from each s_t</li>
+              <li>to interact with the environment</li>
+              <li>when adding experience to the dataset</li>
+          </ul>
+          In this case, imagining trajectories can occur based on embedded actions. In fact this already happens.
+          This is a little experimental. Sometimes, encoded actions cannot be used, like when interacting with
+          the environment. When using the dynamics model to generate additional rollouts, it may not matter what the
+          format of the action vectors is.</p>
+          <p>
+          Then there can be variables in the code called action, and we have to look carefully whether
+          at that place in the code, it is a good idea to encode the actions. Also, actions form a sequence,
+          we need to think carefully whether we want to encode sequences or individual actions, whether this matters,
+          etc.
+          </p>
 
 
        <div id="latent_imagination">
@@ -91,35 +129,34 @@
          <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
        </ul>
        These are synonymous. And, given the lack of imagery, also a poor choice of words. Rollout would be better or "forward pass."
-       "Latent imagination" is a phrase mainly used in the title. You might as well ignore it.
+       "Latent imagination" is a phrase mainly used in the title. You might as well ignore it. Just like "Dreamer".
        </p>
 
 
        <div id="reparameterization">
            <h2>Reparameterization</h2>
        </div>
-       <p>To understand this aspect of Dreamer, I paraphrase Bengio et al. Traditional neural networks implement a deterministic transformation of some input 
+       <p>To understand this aspect of Dreamer, I paraphrase Bengio et al.
+           Traditional neural networks implement a deterministic transformation of some input
           variables <b>x</b>. 
 
 
        <div id="rssm">
            <h2>RSSM</h2>
        </div>
-       <p>Planet, people, profit</p>
-       <p>At Google, we put PlaNet first, a neural network. It comes before the people we intend to replace, brainwash or mollify. Leading to profit.</p>
-
+       <p>PlaNet, people, profit</p>
+       <!--p>At Google, we put PlaNet first, a neural network. It comes before the people we intend to replace, brainwash or mollify. Leading to profit.</p-->
 
        <div id="imagination_horizon">
            <h2>Imagination Horizon</h2>
        </div>
-
 
        <div id="analytic_gradients">
            <h2>Analytic Gradients</h2>
        </div>
 
           <pre><code>&lt;div class="footer"&gt;
-    &amp;copy; 2004 Foo Corporation
+    &amp;copy; 2021 ALU Freiburg
 &lt;/div&gt;
 </code></pre>
       </section>
