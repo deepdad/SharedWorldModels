@@ -12,8 +12,9 @@ CoppeliaSim_Edu_V4_1_0_Ubuntu*/
 CoppeliaSim_Edu_V4_1_0_Ubuntu*.*.*
 RLBench/
 PyRep/
-.idea/
+false/
 
+rlpyt/
 #Mac
 .DS_Store
 
@@ -25,6 +26,9 @@ gluttest*
 __pycache__/
 *.py[cod]
 *$py.class
+
+# IDE
+.idea/
 
 # C extensions
 *.so
