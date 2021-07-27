@@ -13,6 +13,7 @@ from rlbench.tasks import ReachTarget
 from rlbench.tasks import SmallTargetReachNoDistractors
 from rlbench.tasks import LargeTargetNoDistractorsDt200
 from rlbench.tasks import FastSingle2xtarget
+from rlbench.tasks import WipeDesk
 
 from dreamer.envs.env import EnvInfo
 
