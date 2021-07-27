@@ -1,0 +1,5 @@
+You can place these tasks (that were made with RLBench task_builder) in the RLBench
+folder where the others are. Then add them to __init__.py there as well. i.e.
+RLBench/rlbench/task_ttms/  
+RLBench/rlbench/tasks/
+RLBench/rlbench/tasks/__init__.py
