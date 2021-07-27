@@ -72,7 +72,9 @@ install RLBench.
 Please see the README in here:  
 git clone https://github.com/stepjam/PyRep
 
-PyRep currently officially supports version **4.1** (we use 4.2's ReachTarget without problems) of CoppeliaSim. This requires an 
+PyRep currently officially supports version **4.1** (we use 4.2's ReachTarget without problems,
+but other tasks raise errors from CSim, there is a workaround in the PyRep changes folder 
+but that only works for 4_1) of CoppeliaSim. This requires an 
 OpenGL >3:
 ```bash
 glxinfo | grep "OpenGL version"

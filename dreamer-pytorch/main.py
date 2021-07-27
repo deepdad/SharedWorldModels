@@ -20,7 +20,7 @@ from rlpyt.samplers.serial.collectors import SerialEvalCollector
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,
+def build_and_train(log_dir, task="WipeDesk", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,
                     save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
@@ -155,7 +155,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--task', help='RLBench task', default='FastSingle2xtarget')
+    parser.add_argument('--task', help='RLBench task', default='WipeDesk')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
     parser.add_argument('--eval', action='store_true')

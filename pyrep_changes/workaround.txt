@@ -1,0 +1,10 @@
+In
+/PATH/TO/PyRep/pyrep/robots/arms/arm.py
+change lines 391 a.o. to:
+
+        except RuntimeError as e:
+            print("Runtime error calling script: {0}".format(e))
+            # try to restart the task from here
+            # or return an Empty ArmConfigurationPath()
+            ret_floats=configs.flatten().tolist()
+            print("setting ret_floats to {}".format(ret_floats))

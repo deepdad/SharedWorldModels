@@ -43,7 +43,7 @@ class RLBench(Env):
         headless = self.config.get("headless", False)
         env = Environment(action_mode, obs_config=obs_config, headless=headless)
         env.launch()
-        task = env.get_task(self.config.get("task", FastSingle2xtarget))
+        task = env.get_task(self.config.get("task", WipeDesk))
 
         n_demos = 3
         demos = task.get_demos(n_demos, live_demos=True)
