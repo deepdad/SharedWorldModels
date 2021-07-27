@@ -46,7 +46,7 @@ class ActionDecoder(nn.Module):
             std = F.softplus(std + self.raw_init_std) + self.min_std
             dist = torch.distributions.Normal(mean, std)
             dist = torch.distributions.TransformedDistribution(dist,
-                TanhBijector())
+                                                               TanhBijector())
             dist = torch.distributions.Independent(dist, 1)
             dist = SampleDist(dist)
         elif self.dist == 'one_hot':

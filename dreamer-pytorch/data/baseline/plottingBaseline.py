@@ -11,8 +11,5 @@ if __name__ == "__main__":
     plt.xticks(dreamer_results[60].get("xs")[:10])
     plt.show()
 
-    for step, value in zip(dreamer_results[60].get("xs")[:10],dreamer_results[60].get("ys")[:10]):
+    for step, value in zip(dreamer_results[60].get("xs")[:10], dreamer_results[60].get("ys")[:10]):
         print("Return: {} for Step {}".format(value, step))
-
-
-

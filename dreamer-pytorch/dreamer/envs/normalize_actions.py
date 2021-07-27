@@ -3,6 +3,7 @@ import gym
 from dreamer.envs.wrapper import EnvWrapper
 from rlpyt.spaces.float_box import FloatBox
 
+
 class NormalizeActions(EnvWrapper):
 
     def __init__(self, env):

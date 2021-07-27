@@ -7,7 +7,7 @@ We are targeting RLBench with DreamerV1.
 This idea was based on the assumption that DreamerV2 would not be suitable
  for continuous action spaces but when that turned out to be a mistake,
  the decision was rebased to using V1 being more useful for comparisons.
-There are a lot of dependency (issues) and runtime problems.
+There remain parallelization and serial performance problems.
 
 RLBench is a benchmark consisting of robot arm tasks.
 For example reaching for a small black ball on a table (the default task in our main.py).  
@@ -16,11 +16,13 @@ Our preliminary question is whether we can get a DreamerV1 agent to complete the
  as they have sparse rewards upon task completion.
 
 We assume that it can because DreamerV1 was also reported to be able to complete
- such tasks from DeepMind Control Suite.
+ sparse reward tasks from DeepMind Control Suite.
 
 
-We build on dreamer-pytorch by @juliusfrost.
-If RLBench works, we want to use a shared world model across tasks.  
+We build on dreamer-pytorch by @juliusfrost: https://github.com/juliusfrost/dreamer-pytorch  
+If RLBench works, we want to use a shared world model across robots.  
+
+
 
 So we verify the (DreamerV1-tensorflow-) original mujoco/dmcontrol tasks with dreamer-pytorch.  
 We run multiple RLBench tasks with dreamer-pytorch.  
@@ -52,7 +54,7 @@ python atari_py_test.py /home/$(whoami)/venv/lib/python3.9/site-packages/atari_p
 `pip install rlbench`  
 (just a matter of time I guess)  
 
-RLBench uses CoppeliaSim (formerly known as V-Rep, hence PyRep is still used).
+RLBench uses CoppeliaSim (formerly known as V-Rep), hence PyRep is still used.
 This is a 3D simulator with a pluggable physics engine, but MUJOCO is not supported.
 The benefit of that is that a MUJOCO license is not needed. The downside is that MUJOCO
  is the better physics engine for robotics tasks.  
@@ -70,7 +72,8 @@ install RLBench.
 Please see the README in here:  
 git clone https://github.com/stepjam/PyRep
 
-PyRep requires version **4.2** of CoppeliaSim. This requires an OpenGL >3:
+PyRep currently officially supports version **4.1** (we use 4.2 without problems) of CoppeliaSim. This requires an 
+OpenGL >3:
 ```bash
 glxinfo | grep "OpenGL version"
 ```
@@ -91,7 +94,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$COPPELIASIM_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$COPPELIASIM_ROOT
 ```
 
-__Remember to source your bashrc (`source ~/.bashrc`) or 
+Remember to source your bashrc (`source ~/.bashrc`) or 
 zshrc (`source ~/.zshrc`) after this. Also, do the same for other relevant users.
 
 You can then pull PyRep from github:
@@ -120,7 +123,7 @@ cd rlpyt
 pip install -r requirements  
 pip install -e .  
 
-### RLBENCH itself
+### RLBench itself
 Now head back to the RLBench folder, which is located in this repo, but that being a git repo itself,
 its changes are not tracked by the SharedWorldModels repo.  
 The relative path in the following assumes that RLBench is at SharedWorldModels/RLBench.  
@@ -145,10 +148,13 @@ cp rlbench_changes/original/readch_target.py RLBench/rlbench/tasks/reach_target.
 ```
 **when working with PyCharm, there may be a different practice.
 
-I could just save them in RLBEnch directly but I think it may be better to use symlinks there in the future.
+I could just save them in RLBench directly but I think it may be better to use symlinks there in the future.
 so that the reach_target.py file is read via a symlink from the SharedWorldModels/rlbench_changes
  folder. This allows making changes in the RLBench repo that are tracked by the SWM repo, similar to
 how Ray does this.
+
+* We have been using git branches for experiments, but intend to migrate to store and document them in the experiments
+  folder.
 
 ### DISPLAY
 There are several options to get a DISPLAY (or forego one):  
@@ -209,9 +215,10 @@ Install globally on system
 sudo make install  
 ```
 #### PyCharm
-
+unpack and run  
+use the venv configuration in the Run configuration
 #### Remote Desktop
-GCloud
+GCloud is set up with VNC. Details via e-mail.
 
 #### Task Builder
 run 
@@ -221,24 +228,24 @@ python RLBench/rlbench/tools/task_builder.py
 then use the commands listed in the terminal. You can't use .ttt files saved by saving from the File menu in CSim. 
 You must save .ttm files using the terminal. Renaming is best, but it will also move the original python file you
 choose to start from. That's why we save a backup in the rlbench_changes/backup folder.
-Doing this will allow you to import camel case tasks in the custom rlbench.py environment or in main.
-If you get errors about a missing handle, then TaskName.py will use variables that are not in theCSim model.
-If the error is that TaskName task is missing in `__init__.py` then you can add it there manually.
+Doing this will allow you to import camel case tasks (`from rlbench.tasks import FastSingle2xTarget`)in the custom rlbench.py environment or in main.
+* If you get errors about a missing handle, then TaskName.py will use variables that are not in theCSim model.
+* If the error is that TaskName task is missing in `__init__.py` then you can add it there manually.
+* At the top you can set the ms steps for the physics engine (and its speed setting, but this seems sticky/buggy)
 
-### And
-To run with RLBench, run `python main.py`. add arguments (many HP's in code).
+## R&D
+To run with RLBench, run `python main.py --help`. add arguments (HP's in code).  
 
 You can use tensorboard.
 Run `tensorboard --logdir=data`.
 
-## Testing
-
+### Testing
 To run tests:
 ```bash
 pytest tests
 ```
 
-
+### Getting started
 To start, run the Danijar Dreamer v1. It is based on tensorflow and MUJOCO.
 
 Note: MUJOCO requires a computer-tied and .edu email-tied license.
@@ -251,34 +258,35 @@ in ~/.bashrc:
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/$(whoami)/.mujoco/mujoco200/bin
 
+```bash
 cp mujoco200_linux/ .mujoco/ -r  
 cd .mujoco/  
 mv mujoco200_linux/ mujoco200  
 place your license key (the mjkey.txt file from your email) at ~/.mujoco/mjkey.txt  
 
 sudo apt install patchelf  
+```
 or from [source](https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.gz):
 
+```bash
 make  
 ./configure  
 make  
 sudo make install  
-
 sudo apt install libosmesa6-dev libgl1-mesa-glx libglfw3
+```
 
 For the time being, tf2.5 requiring numpy < 1.20:  
-pip uninstall numpy  
-pip install numpy
+`pip install -U numpy`
 
 Now it should work:  
-pip install mujoco_py`  
+`pip install mujoco_py`  
 
-$python3  
->>> import mujoco_py  
->>> import gym  
->>> env = gym.make('FetchReach-v1')  
->>> env.render()
+`$python3`
+`>>> import mujoco_py`   
+`>>> import gym`  
+`>>> env = gym.make('FetchReach-v1')`  
+`>>> env.render()`
 
 ### dm_control
-`pip install dm_control`  
-
+`pip install dm_control`

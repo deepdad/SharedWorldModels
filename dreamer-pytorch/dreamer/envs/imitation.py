@@ -26,7 +26,7 @@ class RLBench(Env):
     def _initialize(self):
         DATASET = 'PATH/TO/DATASET'
         self.obs_sz = (64, 64)
-        cam_config = CameraConfig(image_size=self.obs_sz , render_mode=RenderMode.OPENGL3)
+        cam_config = CameraConfig(image_size=self.obs_sz, render_mode=RenderMode.OPENGL3)
         obs_config = ObservationConfig(wrist_camera=cam_config)
         obs_config.left_shoulder_camera.set_all(False)
         obs_config.right_shoulder_camera.set_all(False)
@@ -68,9 +68,6 @@ class RLBench(Env):
 
     @property
     def action_space(self):
-        print("The action space {} consists of 7 joints and 1 gripper value.".format(FloatBox(low=-1.0,
-                        high=1.0,
-                        shape=(self._env.action_size,))))
         return FloatBox(low=-1.0,
                         high=1.0,
                         shape=(self._env.action_size,))

@@ -232,15 +232,15 @@ class Dreamer(RlAlgorithm):
             pcont_pred = model.pcont(feat)
 
             pcont_target = self.discount * (1 - done.float())
-            support =[]  # support currently disallows use_pcont
+            support = []  # support currently disallows use_pcont
             value = pcont_target
             try:
                 support = pcont_pred.support
 
             except NotImplementedError:
                 warnings.warn(f'{self.__class__} does not define `support` to enable ' +
-                          'sample validation. Please initialize the distribution with ' +
-                          '`validate_args=False` to turn off validation.')
+                              'sample validation. Please initialize the distribution with ' +
+                              '`validate_args=False` to turn off validation.')
             #    return
             assert support is not None
             _pcont_loss = pcont_pred.base_dist.log_prob(pcont_target)

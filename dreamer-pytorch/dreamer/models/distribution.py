@@ -4,6 +4,7 @@ import torch.distributions
 from torch.distributions import constraints
 import numpy as np
 
+
 class TanhBijector(torch.distributions.Transform):
     def __init__(self):
         super().__init__()
@@ -31,11 +32,8 @@ class TanhBijector(torch.distributions.Transform):
     def log_abs_det_jacobian(self, x, y):
         return 2. * (np.log(2) - x - F.softplus(-2. * x))
 
-
-# class ReshapeTransform(Transform):
     @constraints.dependent_property
     def domain(self):
-#        return constraints.independent(constraints.real, len(self.in_shape))
         return constraints.real  # it may actually be the open interval (-1, 1)
 
     @constraints.dependent_property
@@ -43,12 +41,6 @@ class TanhBijector(torch.distributions.Transform):
         return constraints.real  # need to verify, this is just a placeholder
         # return constraints.independent(constraints.real, len(self.out_shape))
 
-# class AffineTransform(Transform):
-#    @constraints.dependent_property(is_discrete=False)
-#    def domain(self):
-#        if self.event_dim == 0:
-#            return constraints.real
-#        return constraints.independent(constraints.real, self.event_dim)
 
 class SampleDist:
 
@@ -57,7 +49,6 @@ class SampleDist:
         self._samples = samples
         self._validate_args = None
         self.validate_args = None
-   # super(Normal, self).__init__(batch_shape, validate_args=validate_args)
 
     @property
     def name(self):

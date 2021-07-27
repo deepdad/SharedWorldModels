@@ -11,8 +11,6 @@ from rlpyt.utils.logging.context import logger_context
 from dreamer.agents.benchmark_dreamer_agent import BenchmarkDreamerAgent2
 from dreamer.algos.dreamer_algo import Dreamer
 from dreamer.envs.wrapper import make_wapper
-# from dreamer.envs.dmc import DeepMindControl
-# from dreamer.envs.atari import Atari
 # from dreamer.envs.rlbench import RLBench
 from dreamer.envs.imitation import RLBench
 from dreamer.envs.action_repeat import ActionRepeat
@@ -22,7 +20,7 @@ from rlpyt.samplers.serial.collectors import SerialEvalCollector
 from dreamer.envs.time_limit import TimeLimit
 
 
-def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,  #
+def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, run_ID=0, cuda_idx=0, eval=False,
                     save_model='last', load_model_path=None):
     params = torch.load(load_model_path) if load_model_path else {}
     agent_state_dict = params.get('agent_state_dict')
@@ -35,61 +33,48 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         # wrapper_classes: list of wrapper classes in order inner-first, outer-last
         wrapper_classes=[ActionRepeat, NormalizeActions, TimeLimit],
         # list of kwargs dictionaries passed to the wrapper classes:
-        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=100 / action_repeat)])
+        wrapper_kwargs=[dict(amount=action_repeat), dict(), dict(duration=100 / action_repeat)]
+    )
+    # with these wrapper_kwargs
     # you'll have: TimeLimit(NormalizeActions(ActionRepeat(RLBench,
     #                        dict(amount=action_repeat),
     #                                         dict(),
     #                                                       dict(amount=action_repeat))
-    # so, how to pass arguments to base_class?
     environments_args = {}
     environments_eval_args = {}
-    #    if environments == DeepMindControl:
-    #        environments_args = {"name": task}
-    #       environments_eval_args = {"name": task}
     if environments == RLBench:
         environments_args = {"config": {}}  # {task: task}}  # , "_env": ""}}
         environments_eval_args = {"config": {}}  # "task": task}
-    #    if isinstance(environments, Atari):
-    #        environments_args = dict(name=task)
-    #        environments_eval_args = dict(name=task)
     else:
         print(environments)
     print(environments, RLBench, environments_args)
 
-    eval_n_envs=0
+    eval_n_envs = 0
     if eval:
-        eval_n_envs=1
+        eval_n_envs = 1
 
     sampler = SerialSampler(
-        # kwargs are difficult to debug, prefer to put the parameters here
+        # TODO: kwargs are difficult to debug, prefer to put the parameters here
         EnvCls=factory_method,
         TrajInfoCls=TrajInfo,
-        # when running with --eval, this seems to be missing somewhere but
-        # this is not a fix (it doesn't work)
         eval_CollectorCls=SerialEvalCollector,
-        # env_kwargs allows passing the arguments to (JUST?) base_class: so base_class is a poor name choice,
-        # base_class should be named environment_class,
-        # unfortunately, SerialSampler is defined in RLPyt, we can replicate and overwrite it in this repo
-        # - to get rid of **kwargs
-        # - pass the env_kwargs to base_class in the factory method too
-        # - don't split SerialSampler in a super(BaseSampler) and inherited (SerialSampler) class
-        #     unless useful
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
-        # samples are temporarily stored in memory, when there are batch_T samples, they are transferred to the replay buffer
+        # samples are temporarily stored in memory, when there are batch_T samples,
+        # they are transferred to the replay buffer
         batch_T=1,
         # number of environment instances to run (in parallel), becomes second batch dimension
         batch_B=1,
         # if taking random number of steps before start of training, to decorrelate batch states:
         max_decorrelation_steps=0,
         # number of environment instances for agent evaluation (0 for no separate evaluation)
-        # (sounds like it requires a parallel sampler)
-        # must be set  to 1 if running with --eval
-        # --eval may work when running with VirtualGL, throws a Qt Error when running on Desktop
+        # (requires a parallel sampler)
+        # must be set to 1 if running with --eval
         eval_n_envs=eval_n_envs,
         # max total number of steps (time * n_envs) per evaluation call
         eval_max_steps=int(10e3),
-        # Optional earlier cutoff for evaluation phase (note that this shouldn't be the imagination phase, which needs long horizons(?))
+        # Optional earlier cutoff for evaluation phase (note that this shouldn't be the imagination
+        # phase, which needs long horizons(?))
         eval_max_trajectories=5,
     )
 
@@ -124,7 +109,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         # replay_ratio=8,  # never used
         # n_step_return=1,  # never used
 
-        updates_per_sync=1,  #? For async mode only. (not implemented)
+        updates_per_sync=1,  # ? For async mode only. (not implemented)
         free_nats=3,  # PlaNet (1811.04551). pp:12" We do not scale the KL divergence terms relative to the
         # reconstruction terms but grant the model 3 free nats by clipping the divergence loss below this value.
         # In a previous version of the agent, we used latent overshooting and an additional fixed global prior, but we
@@ -170,8 +155,7 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--task', help='task or (Atari) game', default='FastSingle2xtarget')
-    parser.add_argument('--environments', help='Environments (class) to use', default='RLBench')
+    parser.add_argument('--task', help='RLBench task', default='FastSingle2xtarget')
     parser.add_argument('--run-ID', help='run identifier (logging)', type=int, default=0)
     parser.add_argument('--cuda-idx', help='gpu to use ', type=int, default=0)
     parser.add_argument('--eval', action='store_true')
@@ -192,9 +176,7 @@ if __name__ == "__main__":
         print(f'run {i} already exists. ')
         i += 1
     print(f'Using run id = {i}')
-    if args.environments == "RLBench":
-        environments = RLBench
-
+    environments = RLBench
     print("Using the {} environments.".format(environments))
     args.run_ID = i
     build_and_train(
