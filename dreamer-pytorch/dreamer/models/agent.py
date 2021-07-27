@@ -29,7 +29,7 @@ class AgentModel(nn.Module):
             value_layers=3,
             value_hidden=200,
             dtype=torch.float,
-            use_pcont=False,
+            use_pcont=True,
             pcont_layers=3,
             pcont_hidden=200,
             **kwargs,

@@ -49,8 +49,8 @@ class Dreamer(RlAlgorithm):
             optim_kwargs=None,
             initial_optim_state_dict=None,
             replay_size=int(5e5),
-            replay_ratio=8,
-            n_step_return=1,
+            # replay_ratio=8,
+            # n_step_return=1,
             updates_per_sync=1,  # For async mode only. (not implemented)
             free_nats=3,
             kl_scale=1,
@@ -79,8 +79,6 @@ class Dreamer(RlAlgorithm):
         self.n_itr = n_itr
         self.batch_spec = batch_spec
         self.mid_batch_reset = mid_batch_reset
-#        print("BATCH_SPEC: ", batch_spec)
-#        print("EXAMPLES: ", examples)
         self.replay_buffer = initialize_replay_buffer(self, examples, batch_spec)
         self.optim_initialize(rank)
 
@@ -136,6 +134,7 @@ class Dreamer(RlAlgorithm):
         # None is allowed, if it is None, then async sampling would be used
         if samples is not None:
             # Note: discount not saved here
+            # a complete episode is stored here (?)
             self.replay_buffer.append_samples(samples_to_buffer(samples))
 
         opt_info = OptInfo(*([] for _ in range(len(OptInfo._fields))))
@@ -230,48 +229,21 @@ class Dreamer(RlAlgorithm):
         image_loss = -torch.mean(image_pred.log_prob(observation))
         pcont_loss = torch.tensor(0.)  # placeholder if use_pcont = False
         if self.use_pcont:
-            # model is probably fixed here at this stage
-            # it is interesting that a Boolean Tensor is expected (wrt DreamerV2)
             pcont_pred = model.pcont(feat)
 
-            print("pcont_pred: ", pcont_pred)
             pcont_target = self.discount * (1 - done.float())
-            # the support for this should not be None
-
-            print("dreamer/algos/dreamer_algo.py : taking log prob",
-                    pcont_target)
-####
-# dreamer/algos/dreamer_algo.py : taking log prob tensor([[[0.9900]],
-#        [[0.9900]],
-#        [[0.9900]],
-#        [[0.9900]],
-#        [[0.9900]]])
-####
             support =[]  # support currently disallows use_pcont
             value = pcont_target
             try:
                 support = pcont_pred.support
-                print(support) # Boolean
 
             except NotImplementedError:
                 warnings.warn(f'{self.__class__} does not define `support` to enable ' +
                           'sample validation. Please initialize the distribution with ' +
                           '`validate_args=False` to turn off validation.')
-                return
+            #    return
             assert support is not None
-            if not support.check(value).all():
-                raise ValueError('The value argument must be within the support')
-
-            # aangezien hier expliciet log_probe wordt gebruikt
-            # met een value die pcont_target heet
-            # dan is het natuurlijk de vraag, gegeven: 
-            # "pcont_pred = model.pcont(feat)"
-            # of pcont() niet een ContinuousBernoulli zou moeten zijn?
-            _pcont_loss = pcont_pred.log_prob(pcont_target)
-            #print("dreamer/algos/dreamer_algo.py : the support for " +
-            #      "this should not be None :", _pcont_loss.support)
-            #het is niet aanneemelijk dat de value boolean zou moeten zijn
-####
+            _pcont_loss = pcont_pred.base_dist.log_prob(pcont_target)
             pcont_loss = -torch.mean(_pcont_loss)
 
         prior_dist = get_dist(prior)

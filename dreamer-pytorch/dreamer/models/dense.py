@@ -33,6 +33,5 @@ class DenseModel(nn.Module):
         if self._dist == 'normal':
             return td.independent.Independent(td.Normal(reshaped_inputs, 1), len(self._output_shape))
         if self._dist == 'binary':
-            return td.independent.Independent(td.Bernoulli(logits=reshaped_inputs), len(self._output_shape))
-#            return td.independent.Independent(td.ContinuousBernoulli(logits=reshaped_inputs), len(self._output_shape))
+            return td.independent.Independent(td.ContinuousBernoulli(logits=reshaped_inputs), len(self._output_shape))
         raise NotImplementedError(self._dist)

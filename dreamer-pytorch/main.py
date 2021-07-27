@@ -60,9 +60,6 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
     if eval:
         eval_n_envs=1
 
-    batching_number = 1
-    print("batching number is set to {}: see main.py".format(batching_number))
-
     sampler = SerialSampler(
         # kwargs are difficult to debug, prefer to put the parameters here
         EnvCls=factory_method,
@@ -79,7 +76,8 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         #     unless useful
         env_kwargs=environments_args,
         eval_env_kwargs=environments_eval_args,
-        batch_T=batching_number,
+        # samples are temporarily stored in memory, when there are batch_T samples, they are transferred to the replay buffer
+        batch_T=1,
         # number of environment instances to run (in parallel), becomes second batch dimension
         batch_B=1,
         # if taking random number of steps before start of training, to decorrelate batch states:
@@ -95,10 +93,13 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         eval_max_trajectories=5,
     )
 
+    # the default setting are as they were used by Hafner, except kl_scale
+    # which is set to 0.1 in J.Frost's implementation by default and to 10
+    # in Hafner's implementation
     algo = Dreamer(
         batch_size=50,
         batch_length=50,
-        train_every=1000/batching_number,
+        train_every=1000,  # Imagination every
         train_steps=100,
         pretrain=100,
         model_lr=6e-4,
@@ -120,15 +121,19 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         initial_optim_state_dict=optimizer_state_dict,
 
         replay_size=int(5e5),
-        replay_ratio=8,  # !D
-        n_step_return=1,  #!D
+        # replay_ratio=8,  # never used
+        # n_step_return=1,  # never used
 
         updates_per_sync=1,  #? For async mode only. (not implemented)
-        free_nats=3,
-        kl_scale=1.0,  # here: 0.1
+        free_nats=3,  # PlaNet (1811.04551). pp:12" We do not scale the KL divergence terms relative to the
+        # reconstruction terms but grant the model 3 free nats by clipping the divergence loss below this value.
+        # In a previous version of the agent, we used latent overshooting and an additional fixed global prior, but we
+        # found  this not to be necessary."
+        kl_scale=1.0,  # in J.Frost: 0.1 (may be due to PyTorch, maybe it is multiplied by 10 somewhere) -- see
+        # free_nats "... we do not scale the KL divergence.."
         type=torch.float,
-        prefill=5000/batching_number,
-        log_video=True,
+        prefill=5000,  # when a fresh run starts, the replay buffer is filled with prefill samples (itrs.)
+        log_video=True,  # requires moviepy (seems to not always work, may be due to TF dependencies)
         video_every=int(1e1),
         video_summary_t=25,
         video_summary_b=4,
@@ -140,25 +145,24 @@ def build_and_train(log_dir, task="FastSingle2xtarget", environments=RLBench, ru
         eval_noise=0,
         expl_type="additive_gaussian",
         expl_min=None,
-        expl_decay=None#,
+        expl_decay=None
         # should we add the rest here? (if so, need to step through the trace)
-        #ModelCls=AtariDreamerModel,  # this has many params
-        #initial_model_state_dict=agent_state_dict,
-        #ModelCls=AgentModel,
-        #model_kwargs=None,
+        # ModelCls=SWDDreamerModel,  # this has many params
+        # initial_model_state_dict=agent_state_dict,
+        # ModelCls=AgentModel,
+        # model_kwargs=None,
     )
     runner_cls = MinibatchRlEval if eval else MinibatchRl
     runner = runner_cls(
         algo=algo,
         agent=agent,
         sampler=sampler,
-        n_steps=1e6,  #  = n_steps / batching_number
+        n_steps=1e6,
         log_interval_steps=1e3,
         affinity=dict(cuda_idx=cuda_idx),
     )
-    relevant_parameter_settings = ""  # now using dense reward, single front 64 camera and large target object/no distractor target reach by default
     config = {"task": task}
-    name = "dreamer_" + task + "_" + relevant_parameter_settings
+    name = "dreamer_" + task
     with logger_context(log_dir, run_ID, name, config, snapshot_mode=save_model, override_prefix=True,
                         use_summary_writer=True):
         runner.train()

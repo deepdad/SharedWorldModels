@@ -44,9 +44,9 @@ class RLBench(Env):
         env.launch()
         task = env.get_task(self.config.get("task", FastSingle2xtarget))
 
-        """n_demos = 1
+        n_demos = 3
         demos = task.get_demos(n_demos, live_demos=True)
-        queue_size = 0
+        """queue_size = 0
         for demo in demos:
             queue_size += len(demo._observations)
         self.demos = queue.Queue(queue_size)
@@ -58,11 +58,6 @@ class RLBench(Env):
                 # as well and should be set when feeding actions to the sampler
         #demos = np.array(demos).flatten()
         """
-        #batch = np.random.choice(demos, replace=False)
-        # batch_images = [obs.left_shoulder_camera.rgb for obs in batch]
-        # predicted_actions = predict_action(batch)
-        # ground_truth_actions = [obs.joint_velocities for obs in batch]
-        # loss = calculate_loss(ground_truth_actions, predicted_actions)
 
         return env, task
 
@@ -82,14 +77,14 @@ class RLBench(Env):
 
     def step(self, action):
         obs, reward, done = self._task.step(action)
-        #obs = np.transpose(obs.front_rgb, (2, 0, 1))
+        # remember to change the camera here as well
         obs = np.transpose(obs.wrist_rgb, (2, 0, 1))
         info = EnvInfo(None, None, done)
         return EnvStep(obs, reward, done, info)
 
     def reset(self):
         descriptions, obs = self._task.reset()
-        # obs = np.transpose(obs.front_rgb, (2, 0, 1))
+        # remember to change the camera here as well
         obs = np.transpose(obs.wrist_rgb, (2, 0, 1))
         del descriptions  # Not used.
         return obs
