@@ -95,50 +95,97 @@
            and the reward is based on the episode length: 0 if done is not reached, discounted iif it is.
           </p>
 
-    <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment4">Experiment 4</a>
-    <p>We also began an implementation of shared world models, that is, the normal action model is a decoder,
+       <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment4">Experiment 4</a>
+       <p>We also began an implementation of shared world models, that is, the normal action model is a decoder,
         in this experiment, we replaced the final layer of the decoder when the robot arm changed, where each of both
         arms has its own action parameterization.<br/>
         The actions in the original model are used in a few places:<br/>
-          <ul>
-              <li>the representation model (a_{t-1})</li>
-              <li>the transition model (a_{t-1})</li>
-              <li>to fill the prefill buffer</li>
-              <li>to imagine trajectories {(s_tau, a_tau)^{t+H}_{tau=t}} from each s_t</li>
-              <li>to interact with the environment</li>
-              <li>when adding experience to the dataset</li>
-          </ul>
-          In this case, imagining trajectories can occur based on embedded actions. In fact this already happens.
-          This is a little experimental. Sometimes, encoded actions cannot be used, like when interacting with
-          the environment. When using the dynamics model to generate additional rollouts, it may not matter what the
-          format of the action vectors is.</p>
-          <p>
-          Then there can be variables in the code called action, and we have to look carefully whether
-          at that place in the code, it is a good idea to encode the actions. Also, actions form a sequence,
-          we need to think carefully whether we want to encode sequences or individual actions, whether this matters,
-          etc.
-          </p>
+        <ul>
+            <li>the representation model (a_{t-1})</li>
+            <li>the transition model (a_{t-1})</li>
+            <li>to fill the prefill buffer</li>
+            <li>to imagine trajectories {(s_tau, a_tau)^{t+H}_{tau=t}} from each s_t</li>
+            <li>to interact with the environment</li>
+            <li>when adding experience to the dataset</li>
+        </ul>
+        In this case, imagining trajectories can occur based on embedded actions. In fact this already happens.
+        This is a little experimental. Sometimes, encoded actions cannot be used, like when interacting with
+        the environment. When using the dynamics model to generate additional rollouts, it may not matter what the
+        format of the action vectors is.</p>
+        <p>
+        Then there can be variables in the code called action, and we have to look carefully whether
+        at that place in the code, it is a good idea to encode the actions. Also, actions form a sequence,
+        we need to think carefully whether we want to encode sequences or individual actions, whether this matters,
+        etc.
+        </p>
 
+        <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment5">Experiment 5: Behavior Learning</a>
+        <p>Comparison of action selection schemes on the continuous control task 'ReachTarget' across 5 seeds. 
+           We compare Dreamer that learns both actions and values in rollout, to only learning actions in latent rollout.</p>
+
+        <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment6">Experiment 6: Representation Learning</a>
+        <p> On the sparse reward tasks, Hafner et al. report outperformance by D4PG (1e9 steps), but also competitive performance by use of Dreamer
+            with a Constrastive loss for representation learning.</p>
+
+        <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment6">Experiment 6: Representation Learning</a>
+        <p> On the sparse reward tasks, Hafner et al. report competitive performance by use of Dreamer
+            with an action repeat of 4.</p>
+
+        <a href="https://tensorboard.dev/experiment/JHykx7o7RfaynuPFN7LKGg/#scalars" title="experiment4">Experiment 5: Behavior Learning</a>
+        <p></p>
 
        <div id="latent_imagination">
            <h2>Latent Imagination</h2>
-       </div>
        <p>Then we have:
        <ul>  
          <li><blockquote><p>latent imagination<p><blockquote></li>
          <li><blockquote><p>hypothetical trajectories in the compact latent space of the world model<p><blockquote></li>
        </ul>
        These are synonymous. And, given the lack of imagery, also a poor choice of words. Rollout would be better or "forward pass."
-       "Latent imagination" is a phrase mainly used in the title. You might as well ignore it. Just like "Dreamer".
+       "Latent imagination" is a phrase mainly used in the title. You might as well ignore it. Just like "Dreamer" (PlaNet1.2).
+       Imagination is effectively sampling a predictive model. Except that the samples drawn (for example
+       vectors of ordinary scalar values (floats)) from a probability distribution, that are then filled in for model parameters, 
+       much like assigning values to mathematical function  parameters such as x in y(x) = 2*x. For example
+       setting x to 9, to obtain 18. In imagination, this happens repeatedly, every time collecting the outputs 
+       and reusing those in the next step, so sampling is simulation or
+       a constructed sampling program. The question is how this sampling construction precisely proceeds?</p>
+       <p>The answer, I think, mainly relates to the learning of the value model. The action value follows
+       the value model (although vice versa) and uses analytic gradients (see below), but the action model
+       is just a state -> action function. Value learning brings together the value estimates and the value
+       model: Value learning is a regression of (neural) value model predictions onto value estimates and these
+       estimates are the aforementioned constructions. In this case the whole construction process occurs in
+       neural representation. Value estimates depend on the reward and value predictions, which depend on
+       represented states, which in turn depend on represented actions.
+       Despite all these operations in "abstract algebra", it is, at least in this iteration of PlaNet still a stepwise procedure (in 2021, Hafner
+       abstracts over time).</p>
+       <p>   
+       <b>Control with latent dynamics</b> 
+       Embed 2 Control (Watter et al., 2015) and
+       Robust locally-linear Controllable Embedding (Banijamali et al., 2017) embed images to predict forward in a compact space to solve simple tasks.
+       World Models (Ha and Schmidhuber, 2018) learn latent dynamics in a two-stage process to evolve linear
+       controllers in imagination.
+       PlaNet (Hafner et al., 2018) learns them jointly and solves visual locomotion tasks by latent online planning.
+       Stochastic Optimal control with LAtent Representations (Zhang et al., 2019) solves robotic tasks via guided policy search in latent space.
+       Imagination A2ugmented Agents(Weber et al., 2017) hands imagined trajectories to a model-free policy, while
+       Lee et al. (2019)
+       and Gregor et al. (2019) learn belief representations to accelerate model-free agents.
+       All these methods were unable to do everything in the represented RL-MDP or unable to do so over many
+       time steps.
        </p>
-
+       </div>
 
        <div id="reparameterization">
            <h2>Reparameterization</h2>
        </div>
-       <p>To understand this aspect of Dreamer, I paraphrase Bengio et al.
+       <p>Reparametrization is a key trick for this paper and worthwhile to take note of.
+          To understand this aspect of Dreamer, I paraphrase Bengio et al.
            Traditional neural networks implement a deterministic transformation of some input
           variables <b>x</b>. 
+          In case of sampling, it is not possible to attribute gradients properly. I think it was Kingma et al.
+          who conceived of a method to make this possible. For the Gaussian it is simple, but for other
+          distributions not so (it will be learned in time).
+          I replace the Bernoulli distribution somewhere by a Continuous Bernoulli.
+       </p>
 
 
        <div id="rssm">
@@ -146,13 +193,43 @@
        </div>
        <p>PlaNet, people, profit</p>
        <!--p>At Google, we put PlaNet first, a neural network. It comes before the people we intend to replace, brainwash or mollify. Leading to profit.</p-->
+       <p>Dreamer is a different name for a second iteration of PlaNet (This boy doesn't reach to the ground).
+       </p>
 
        <div id="imagination_horizon">
-           <h2>Imagination Horizon</h2>
+           <h2>Imagined multi-step returns</h2>
+       <p>Value Prediction Network (Oh et al., 2017),
+          Model-based Value Estimation (Feinberg et al., 2018),
+          and STochastich Ensemble Value Estimation (Buckman et al., 2018) learn dynamics for multi-step Q-learning from a replay buffer.
+          AlphaGo (Silver et al., 2017)
+          combines predictions of actions and state values with planning, assuming access to the true dynamics.
+          Also assuming access to the dynamics, Plan Onlin Learn Offline (Lowrey et al., 2018) plans to explore by learning a value
+          ensemble.
+          MuZero (Schrittwieser et al., 2019) learns task-specific reward and value models to solve challenging
+          tasks but requires large amounts of experience.
+          Probabilistic Ensembles with Trajectory Sampling (Chua et al., 2018),
+          VisualModel Predictive Control (Ebert et al., 2017), and PlaNet (Hafner et al., 2018) plan online
+          using derivative-free optimization.
+          Model based POlicy PLannINg (Wang and Ba, 2019) improves over online planning by self-imitation.
+          Piergiovanni et al. (2018) learn robot policies by imagination with a latent dynamics model.
+          Planning with neural network gradients was shown on small problems (Schmidhuber, 1990; Henaff et al., 2018)
+          but has been challenging to scale (Parmas et al., 2019).
        </div>
 
        <div id="analytic_gradients">
-           <h2>Analytic Gradients</h2>
+           <h2>Analytic Value Gradients</h2>
+       <p>Deterministic Policy Gradient (Silver et al., 2014), Deep Deterministic Policy Gradient (Lillicrap et al., 2015),
+          and Soft Actor-Critic (Haarnoja et al., 2018) leverage gradients of learned immediate action values to
+          learn a policy by experience replay.</p>
+       <p>Stochastic Value Gradient (Heess et al., 2015) reduces the variance of model-free on-policy algorithms
+          by analytic value gradients of one-step model predictions.</p>
+       <p>Concurrent work by Byravan et al. (2019)
+          uses latent imagination with deterministic models for navigation and manipulation tasks.</p>
+       <p>Model Ensemble - Trust Region Policy Optimization
+          (Kurutach et al., 2018) accelerates an otherwise model-free agent via gradients of predicted rewards
+          for proprioceptive inputs.</p>
+       <p> Distilled Gradient Based Planning (Henaff et al., 2017; 2019) uses model gradients for online
+           planning in simple tasks.</p>
        </div>
 
           <pre><code>&lt;div class="footer"&gt;
